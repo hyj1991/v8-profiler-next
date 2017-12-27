@@ -1,6 +1,6 @@
 {
   "name": "v8-profiler-next",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
@@ -22,8 +22,10 @@
   "homepage": "https://github.com/hyj1991/v8-profiler-next#readme",
   "files": [
     "src",
+    "binding.gyp",
     "dispatch.js",
-    "binding.gyp"
+    "LICENSE",
+    "README.md"
   ],
   "dependencies": {
     "nan": "^2.8.0"
