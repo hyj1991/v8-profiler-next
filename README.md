@@ -7,6 +7,8 @@
 
 ## I. Quick Start
 
+Need node v6 +
+
 ### take cpu profile
 
 ```js
@@ -41,6 +43,27 @@ snapshot.export(function (error, result) {
 const transform = snapshot.export();
 transform.pipe(process.stdout);
 transform.on('finish', snapshot.delete.bind(snapshot));
+```
+
+### take allocation profile
+
+```js
+'use strict';
+const v8Profiler = require('v8-profiler-next');
+// set a leak array
+const arraytest = [];
+setInterval(() => {
+    arraytest.push(new Array(1e2).fill('*').join());
+}, 20);
+// start 1min sampling profile
+v8Profiler.startSamplingHeapProfiling();
+setTimeout(() => {
+	// stop and get allocation profile
+	const profile = v8Profiler.stopSamplingHeapProfiling();
+	// upload shf.heapprofile into chrome dev tools -> Memory -> ALLOCATION PRODILES
+    require('fs').writeFileSync('./shf.heapprofile', JSON.stringify(profile));
+	console.log(profile);
+}, 60 * 1000);
 ```
 
 ## II. License

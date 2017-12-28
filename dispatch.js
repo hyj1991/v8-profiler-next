@@ -286,6 +286,7 @@ let profiler = {
 
     stopSamplingHeapProfiling: function () {
         let profile = binding.samplingHeap.stopSamplingHeapProfiling();
+        profile.__proto__ = SamplingHeapProfile.prototype;
         return profile;
     }
 };
