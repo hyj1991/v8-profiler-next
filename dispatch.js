@@ -123,6 +123,35 @@ CpuProfile.prototype.export = function (dataReceiver) {
     return toStream ? dataReceiver : undefined;
 };
 
+function SamplingHeapProfile() { };
+
+SamplingHeapProfile.prototype.export = function (dataReceiver) {
+    dataReceiver = dataReceiver || new ExportStream();
+
+    let toStream = dataReceiver instanceof Stream;
+    let error, result;
+
+    try {
+        result = JSON.stringify(this);
+    } catch (err) {
+        error = err;
+    }
+
+    process.nextTick(function () {
+        if (toStream) {
+            if (error) {
+                dataReceiver.emit('error', error);
+            }
+
+            dataReceiver.end(result);
+        } else {
+            dataReceiver(error, result);
+        }
+    });
+
+    return toStream ? dataReceiver : undefined;
+};
+
 let startTime, endTime;
 let activeProfiles = [];
 
@@ -243,6 +272,22 @@ let profiler = {
         Object.keys(binding.cpu.profiles).forEach(function (key) {
             binding.cpu.profiles[key].delete();
         });
+    },
+
+    /*SAMPLING HEAP PROFILER API*/
+
+    startSamplingHeapProfiling: function (interval, depth) {
+        if (arguments.length === 2) {
+            binding.samplingHeap.startSamplingHeapProfiling(interval, depth);
+        } else {
+            binding.samplingHeap.startSamplingHeapProfiling();
+        }
+    },
+
+    stopSamplingHeapProfiling: function () {
+        let profile = binding.samplingHeap.stopSamplingHeapProfiling();
+        profile.__proto__ = SamplingHeapProfile.prototype;
+        return profile;
     }
 };
 
