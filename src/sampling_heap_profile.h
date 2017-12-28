@@ -14,7 +14,6 @@ namespace nodex {
     protected:
       static NAN_METHOD(StartSamplingHeapProfiling);
       static NAN_METHOD(StopSamplingHeapProfiling);
-      // static NAN_METHOD(SetSamplingInterval);
   };
 
 } //namespace nodex

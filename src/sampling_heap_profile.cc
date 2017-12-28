@@ -13,36 +13,36 @@ namespace nodex {
   SamplingHeapProfile::SamplingHeapProfile () {}
   SamplingHeapProfile::~SamplingHeapProfile () {}
 
-  Local<Value> TranslateAllocationProfile(AllocationProfile::Node* node) {
+  Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
     Local<Object> js_node = Nan::New<Object>();
-    js_node->Set(Nan::New<String>("name").ToLocalChecked(),
-      node->name);
-    js_node->Set(Nan::New<String>("scriptName").ToLocalChecked(),
-      node->script_name);
-    js_node->Set(Nan::New<String>("scriptId").ToLocalChecked(),
-      Nan::New<Integer>(node->script_id));
-    js_node->Set(Nan::New<String>("lineNumber").ToLocalChecked(),
-      Nan::New<Integer>(node->line_number));
-    js_node->Set(Nan::New<String>("columnNumber").ToLocalChecked(),
-      Nan::New<Integer>(node->column_number));
+
+    // add call frame
+    Local<Object> call_frame = Nan::New<Object>();
+    call_frame->Set(Nan::New<String>("functionName").ToLocalChecked(), node->name);
+    call_frame->Set(Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->script_id));
+    // Local<String> url = String::Concat(node->script_name->ToString(), Nan::New<String>(":").ToLocalChecked());
+    // url = String::Concat(url->ToString(), Nan::New<String>(std::to_string(node->line_number)).ToLocalChecked());
+    call_frame->Set(Nan::New<String>("url").ToLocalChecked(), node->script_name);
+    call_frame->Set(Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->line_number));
+    call_frame->Set(Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->column_number));
+    js_node->Set(Nan::New<String>("callFrame").ToLocalChecked(), call_frame);
+
+    // add self size
+    Local<Array> allocations = Nan::New<Array>(node->allocations.size());
+    int selfSize = 0;
+    for (size_t i = 0; i < node->allocations.size(); i++) {
+      AllocationProfile::Allocation alloc = node->allocations[i];
+      selfSize += alloc.size * alloc.count;
+    }
+    js_node->Set(Nan::New<String>("selfSize").ToLocalChecked(), Nan::New<Integer>(selfSize));
+
+    // add children
     Local<Array> children = Nan::New<Array>(node->children.size());
     for (size_t i = 0; i < node->children.size(); i++) {
       children->Set(i, TranslateAllocationProfile(node->children[i]));
     }
-    js_node->Set(Nan::New<String>("children").ToLocalChecked(),
-      children);
-    Local<Array> allocations = Nan::New<Array>(node->allocations.size());
-    for (size_t i = 0; i < node->allocations.size(); i++) {
-      AllocationProfile::Allocation alloc = node->allocations[i];
-      Local<Object> js_alloc = Nan::New<Object>();
-      js_alloc->Set(Nan::New<String>("size").ToLocalChecked(),
-        Nan::New<Number>(alloc.size));
-      js_alloc->Set(Nan::New<String>("count").ToLocalChecked(),
-        Nan::New<Number>(alloc.count));
-      allocations->Set(i, js_alloc);
-    }
-    js_node->Set(Nan::New<String>("allocations").ToLocalChecked(),
-      allocations);
+    js_node->Set(Nan::New<String>("children").ToLocalChecked(), children);
+
     return js_node;
   }
 
@@ -77,7 +77,11 @@ namespace nodex {
     // return allocationProfile
     AllocationProfile* profile = v8::Isolate::GetCurrent()->GetHeapProfiler()->GetAllocationProfile();
     AllocationProfile::Node* root = profile->GetRootNode();
-    info.GetReturnValue().Set(TranslateAllocationProfile(root));
+    // translate
+    Local<Object> js_node = TranslateAllocationProfile(root);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(Nan::New<String>("head").ToLocalChecked(), js_node);
+    info.GetReturnValue().Set(result);
     free(profile);
     // stop sampling heap profile
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StopSamplingHeapProfiler();
