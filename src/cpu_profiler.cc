@@ -2,77 +2,77 @@
 #include "cpu_profile.h"
 
 namespace nodex {
-  using v8::CpuProfile;
-  using v8::Handle;
-  using v8::Local;
-  using v8::Object;
-  using v8::Array;
-  using v8::String;
+using v8::CpuProfile;
+using v8::Handle;
+using v8::Local;
+using v8::Object;
+using v8::Array;
+using v8::String;
 
-  CpuProfiler::CpuProfiler () {}
-  CpuProfiler::~CpuProfiler () {}
-
-  #if (NODE_MODULE_VERSION > 0x0039)
-    v8::CpuProfiler* current_cpuprofiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
-  #endif
-
-  void CpuProfiler::Initialize (Local<Object> target) {
-    Nan::HandleScope scope;
-
-    Local<Object> cpuProfiler = Nan::New<Object>();
-    Local<Array> profiles = Nan::New<Array>();
-
-    Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
-    Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
-    Nan::SetMethod(cpuProfiler, "setSamplingInterval", CpuProfiler::SetSamplingInterval);
-    cpuProfiler->Set(Nan::New<String>("profiles").ToLocalChecked(), profiles);
-
-    Profile::profiles.Reset(profiles);
-    target->Set(Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
-  }
-
-  NAN_METHOD(CpuProfiler::StartProfiling) {
-    Local<String> title = info[0]->ToString();
+CpuProfiler::CpuProfiler () {}
+CpuProfiler::~CpuProfiler () {}
 
 #if (NODE_MODULE_VERSION > 0x0039)
-    bool recsamples = info[1]->ToBoolean()->Value();
-    current_cpuprofiler->StartProfiling(title, recsamples);
-#elif (NODE_MODULE_VERSION > 0x000B)
-    bool recsamples = info[1]->ToBoolean()->Value();
-    v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
-#else
-    v8::CpuProfiler::StartProfiling(title);
+v8::CpuProfiler* current_cpuprofiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
 #endif
-  }
 
-  NAN_METHOD(CpuProfiler::StopProfiling) {
-    const CpuProfile* profile;
+void CpuProfiler::Initialize (Local<Object> target) {
+  Nan::HandleScope scope;
 
-    Local<String> title = Nan::EmptyString();
-    if (info.Length()) {
-      if (info[0]->IsString()) {
-        title = info[0]->ToString();
-      } else if (!info[0]->IsUndefined()) {
-        return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
-      }
+  Local<Object> cpuProfiler = Nan::New<Object>();
+  Local<Array> profiles = Nan::New<Array>();
+
+  Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
+  Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
+  Nan::SetMethod(cpuProfiler, "setSamplingInterval", CpuProfiler::SetSamplingInterval);
+  cpuProfiler->Set(Nan::New<String>("profiles").ToLocalChecked(), profiles);
+
+  Profile::profiles.Reset(profiles);
+  target->Set(Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
+}
+
+NAN_METHOD(CpuProfiler::StartProfiling) {
+  Local<String> title = info[0]->ToString();
+
+#if (NODE_MODULE_VERSION > 0x0039)
+  bool recsamples = info[1]->ToBoolean()->Value();
+  current_cpuprofiler->StartProfiling(title, recsamples);
+#elif (NODE_MODULE_VERSION > 0x000B)
+  bool recsamples = info[1]->ToBoolean()->Value();
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
+#else
+  v8::CpuProfiler::StartProfiling(title);
+#endif
+}
+
+NAN_METHOD(CpuProfiler::StopProfiling) {
+  const CpuProfile* profile;
+
+  Local<String> title = Nan::EmptyString();
+  if (info.Length()) {
+    if (info[0]->IsString()) {
+      title = info[0]->ToString();
+    } else if (!info[0]->IsUndefined()) {
+      return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
     }
+  }
 
 #if (NODE_MODULE_VERSION > 0x0039)
-    profile = current_cpuprofiler->StopProfiling(title);
+  profile = current_cpuprofiler->StopProfiling(title);
 #elif (NODE_MODULE_VERSION > 0x000B)
-    profile = v8::Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
+  profile = v8::Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
 #else
-    profile = v8::CpuProfiler::StopProfiling(title);
+  profile = v8::CpuProfiler::StopProfiling(title);
 #endif
 
-    info.GetReturnValue().Set(Profile::New(profile));
-  }
+  info.GetReturnValue().Set(Profile::New(profile));
+}
 
-  NAN_METHOD(CpuProfiler::SetSamplingInterval) {
+NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 #if (NODE_MODULE_VERSION > 0x0039)
-    current_cpuprofiler->SetSamplingInterval(info[0]->Uint32Value());
+  current_cpuprofiler->SetSamplingInterval(info[0]->Uint32Value());
 #elif (NODE_MODULE_VERSION > 0x000B)
-    v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(info[0]->Uint32Value());
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(info[0]->Uint32Value());
 #endif
-  }
+}
 } //namespace nodex

@@ -6,18 +6,18 @@
 #include "nan.h"
 
 namespace nodex {
-  class CpuProfiler {
-    public:
-      static void Initialize(v8::Local<v8::Object> target);
+class CpuProfiler {
+public:
+  static void Initialize(v8::Local<v8::Object> target);
 
-      CpuProfiler();
-      virtual ~CpuProfiler();
+  CpuProfiler();
+  virtual ~CpuProfiler();
 
-    protected:
-      static NAN_METHOD(StartProfiling);
-      static NAN_METHOD(StopProfiling);
-      static NAN_METHOD(SetSamplingInterval);
-  };
+protected:
+  static NAN_METHOD(StartProfiling);
+  static NAN_METHOD(StopProfiling);
+  static NAN_METHOD(SetSamplingInterval);
+};
 } //namespace nodex
 
 #endif  // NODE_CPU_PROFILER_H

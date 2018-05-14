@@ -7,25 +7,25 @@
 namespace nodex {
 
 class OutputStreamAdapter : public v8::OutputStream {
-    public:
-      OutputStreamAdapter(
-        v8::Local<v8::Function> _iterator,
-        v8::Local<v8::Function> _callback)
-      : abort(Nan::False())
-      , iterator(_iterator)
-      , callback(_callback) {};
+public:
+  OutputStreamAdapter(
+    v8::Local<v8::Function> _iterator,
+    v8::Local<v8::Function> _callback)
+    : abort(Nan::False())
+    , iterator(_iterator)
+    , callback(_callback) {};
 
-      void EndOfStream();
+  void EndOfStream();
 
-      int GetChunkSize();
+  int GetChunkSize();
 
-      WriteResult WriteAsciiChunk(char* data, int size);
+  WriteResult WriteAsciiChunk(char* data, int size);
 
-      WriteResult WriteHeapStatsChunk(v8::HeapStatsUpdate* data, int count);
-    private:
-      v8::Local<v8::Value> abort;
-      v8::Local<v8::Function> iterator;
-      v8::Local<v8::Function> callback;
-  };
+  WriteResult WriteHeapStatsChunk(v8::HeapStatsUpdate* data, int count);
+private:
+  v8::Local<v8::Value> abort;
+  v8::Local<v8::Function> iterator;
+  v8::Local<v8::Function> callback;
+};
 } //namespace nodex
 #endif  // NODE_PROFILE_

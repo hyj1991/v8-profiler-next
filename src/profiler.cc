@@ -5,12 +5,12 @@
 #include "sampling_heap_profile.h"
 
 namespace nodex {
-  void InitializeProfiler(v8::Local<v8::Object> target) {
-    Nan::HandleScope scope;
-    HeapProfiler::Initialize(target);
-    CpuProfiler::Initialize(target);
-    SamplingHeapProfile::Initialize(target);
-  }
+void InitializeProfiler(v8::Local<v8::Object> target) {
+  Nan::HandleScope scope;
+  HeapProfiler::Initialize(target);
+  CpuProfiler::Initialize(target);
+  SamplingHeapProfile::Initialize(target);
+}
 
-  NODE_MODULE(profiler, InitializeProfiler)
+NODE_MODULE(profiler, InitializeProfiler)
 }
