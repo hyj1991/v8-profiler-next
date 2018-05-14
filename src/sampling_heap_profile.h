@@ -6,15 +6,15 @@
 
 namespace nodex {
 
-  class SamplingHeapProfile {
-    public:
-      static void Initialize(v8::Local<v8::Object> target);
-      SamplingHeapProfile();
-      virtual ~SamplingHeapProfile();
-    protected:
-      static NAN_METHOD(StartSamplingHeapProfiling);
-      static NAN_METHOD(StopSamplingHeapProfiling);
-  };
+class SamplingHeapProfile {
+public:
+  static void Initialize(v8::Local<v8::Object> target);
+  SamplingHeapProfile();
+  virtual ~SamplingHeapProfile();
+protected:
+  static NAN_METHOD(StartSamplingHeapProfiling);
+  static NAN_METHOD(StopSamplingHeapProfiling);
+};
 
 } //namespace nodex
 #endif  // NODE_PROFILE_
