@@ -12,6 +12,10 @@ namespace nodex {
   CpuProfiler::CpuProfiler () {}
   CpuProfiler::~CpuProfiler () {}
 
+  #if (NODE_MODULE_VERSION > 0x0039)
+    v8::CpuProfiler* current_cpuprofiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+  #endif
+
   void CpuProfiler::Initialize (Local<Object> target) {
     Nan::HandleScope scope;
 
@@ -30,7 +34,10 @@ namespace nodex {
   NAN_METHOD(CpuProfiler::StartProfiling) {
     Local<String> title = info[0]->ToString();
 
-#if (NODE_MODULE_VERSION > 0x000B)
+#if (NODE_MODULE_VERSION > 0x0039)
+    bool recsamples = info[1]->ToBoolean()->Value();
+    current_cpuprofiler->StartProfiling(title, recsamples);
+#elif (NODE_MODULE_VERSION > 0x000B)
     bool recsamples = info[1]->ToBoolean()->Value();
     v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
 #else
@@ -50,7 +57,9 @@ namespace nodex {
       }
     }
 
-#if (NODE_MODULE_VERSION > 0x000B)
+#if (NODE_MODULE_VERSION > 0x0039)
+    profile = current_cpuprofiler->StopProfiling(title);
+#elif (NODE_MODULE_VERSION > 0x000B)
     profile = v8::Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
 #else
     profile = v8::CpuProfiler::StopProfiling(title);
@@ -60,7 +69,9 @@ namespace nodex {
   }
 
   NAN_METHOD(CpuProfiler::SetSamplingInterval) {
-#if (NODE_MODULE_VERSION > 0x000B)
+#if (NODE_MODULE_VERSION > 0x0039)
+    current_cpuprofiler->SetSamplingInterval(info[0]->Uint32Value());
+#elif (NODE_MODULE_VERSION > 0x000B)
     v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(info[0]->Uint32Value());
 #endif
   }
