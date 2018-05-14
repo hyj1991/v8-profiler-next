@@ -13,7 +13,7 @@ namespace nodex {
   using v8::Object;
   using v8::SnapshotObjectId;
   using v8::String;
-  using v8::TryCatch;
+  using Nan::TryCatch;
   using v8::Value;
 
   HeapProfiler::HeapProfiler() {}

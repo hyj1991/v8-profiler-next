@@ -31,7 +31,6 @@ namespace nodex {
     js_node->Set(Nan::New<String>("callFrame").ToLocalChecked(), call_frame);
 
     // add self size
-    Local<Array> allocations = Nan::New<Array>(node->allocations.size());
     int selfSize = 0;
     for (size_t i = 0; i < node->allocations.size(); i++) {
       AllocationProfile::Allocation alloc = node->allocations[i];
