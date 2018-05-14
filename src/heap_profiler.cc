@@ -67,7 +67,9 @@ namespace nodex {
   }
 
   NAN_METHOD(HeapProfiler::TakeSnapshot) {
+#if (NODE_MODULE_VERSION <= 0x0038)
     ActivityControlAdapter* control = new ActivityControlAdapter(info[1]);
+#endif
 #if (NODE_MODULE_VERSION < 0x000F)
     Local<String> title = info[0]->ToString();
 #endif
