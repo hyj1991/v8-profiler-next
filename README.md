@@ -7,7 +7,7 @@
 
 ## I. Quick Start
 
-Need node v6 +
+Support Node v4.x ~ v10.x
 
 ### take cpu profile
 
@@ -53,7 +53,7 @@ const v8Profiler = require('v8-profiler-next');
 // set a leak array
 const arraytest = [];
 setInterval(() => {
-    arraytest.push(new Array(1e2).fill('*').join());
+  arraytest.push(new Array(1e2).fill('*').join());
 }, 20);
 // start 1min sampling profile
 v8Profiler.startSamplingHeapProfiling();
@@ -61,7 +61,7 @@ setTimeout(() => {
 	// stop and get allocation profile
 	const profile = v8Profiler.stopSamplingHeapProfiling();
 	// upload shf.heapprofile into chrome dev tools -> Memory -> ALLOCATION PRODILES
-    require('fs').writeFileSync('./shf.heapprofile', JSON.stringify(profile));
+  require('fs').writeFileSync('./shf.heapprofile', JSON.stringify(profile));
 	console.log(profile);
 }, 60 * 1000);
 ```
@@ -70,4 +70,4 @@ setTimeout(() => {
 
 [MIT License](LICENSE)
 
-Copyright (c) 2017 team of [v8-profiler](github.com/node-inspector/v8-profiler), hyj1991
+Copyright (c) 2018 team of [v8-profiler](github.com/node-inspector/v8-profiler), hyj1991
