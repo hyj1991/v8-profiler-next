@@ -66,7 +66,7 @@ namespace nodex {
     Local<Object> graph_node;
     Local<Object> _cache = Nan::New(graph_node_cache);
     int32_t _id = node->GetId();
-    if (_cache->Has(_id)) {
+    if (_cache->Has(Nan::New<Number>(_id))) {
       graph_node = _cache->Get(_id)->ToObject();
     } else {
       graph_node = Nan::New(graph_node_template_)->NewInstance();
