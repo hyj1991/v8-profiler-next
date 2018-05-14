@@ -8,11 +8,14 @@ namespace nodex {
   using v8::Value;
   using v8::Number;
   using v8::Array;
+  #if NODE_MODULE_VERSION >= 0x0030
   using v8::AllocationProfile;
+  #endif
 
   SamplingHeapProfile::SamplingHeapProfile () {}
   SamplingHeapProfile::~SamplingHeapProfile () {}
 
+  #if NODE_MODULE_VERSION >= 0x0030
   Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
     Local<Object> js_node = Nan::New<Object>();
 
@@ -45,6 +48,7 @@ namespace nodex {
 
     return js_node;
   }
+  #endif
 
   void SamplingHeapProfile::Initialize (Local<Object> target) {
     Nan::HandleScope scope;
@@ -58,6 +62,7 @@ namespace nodex {
   }
 
   NAN_METHOD(SamplingHeapProfile::StartSamplingHeapProfiling) {
+    #if NODE_MODULE_VERSION >= 0x0030
     if (info.Length() == 2) {
       if (!info[0]->IsUint32()) {
         return Nan::ThrowTypeError("first argument type must be uint32");
@@ -71,9 +76,11 @@ namespace nodex {
     } else {
       v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler();
     }
+    #endif
   }
   
   NAN_METHOD(SamplingHeapProfile::StopSamplingHeapProfiling) {
+    #if NODE_MODULE_VERSION >= 0x0030
     // return allocationProfile
     AllocationProfile* profile = v8::Isolate::GetCurrent()->GetHeapProfiler()->GetAllocationProfile();
     AllocationProfile::Node* root = profile->GetRootNode();
@@ -85,5 +92,6 @@ namespace nodex {
     free(profile);
     // stop sampling heap profile
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StopSamplingHeapProfiler();
+    #endif
   }
 }

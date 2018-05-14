@@ -277,14 +277,17 @@ let profiler = {
     /*SAMPLING HEAP PROFILER API*/
 
     startSamplingHeapProfiling: function (interval, depth) {
-        if (arguments.length === 2) {
+        if (process.versions.modules < 48)
+            throw new Error('Sampling heap profiler needs node version >= node-v6.0.0!');
+        if (arguments.length === 2)
             binding.samplingHeap.startSamplingHeapProfiling(interval, depth);
-        } else {
+        else
             binding.samplingHeap.startSamplingHeapProfiling();
-        }
     },
 
     stopSamplingHeapProfiling: function () {
+        if (process.versions.modules < 48)
+            throw new Error('Sampling heap profiler needs node version >= node-v6.0.0 !');
         let profile = binding.samplingHeap.stopSamplingHeapProfiling();
         profile.__proto__ = SamplingHeapProfile.prototype;
         return profile;
