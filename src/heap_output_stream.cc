@@ -9,7 +9,7 @@ namespace nodex {
   using v8::String;
   using v8::OutputStream;
   using v8::Function;
-  using v8::TryCatch;;
+  using Nan::TryCatch;;
   using v8::Integer;
 
   void OutputStreamAdapter::EndOfStream() {
