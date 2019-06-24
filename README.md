@@ -47,7 +47,7 @@ transform.on('finish', snapshot.delete.bind(snapshot));
 
 ### take allocation profile
 
-**Attention:** Please use sampling heap profiling alone, without cpu profiling or taking snapshot.
+**Attention:** If node version <= v8.x, please use sampling heap profiling alone without cpu profiling or taking snapshot.
 
 ```js
 'use strict';

@@ -14,7 +14,7 @@ using v8::Integer;
 void OutputStreamAdapter::EndOfStream() {
   Nan::HandleScope scope;
   TryCatch try_catch;
-  callback->Call(Nan::GetCurrentContext()->Global(), 0, NULL);
+  Nan::Call(callback, Nan::GetCurrentContext()->Global(), 0, NULL);
 
   if (try_catch.HasCaught()) {
     Nan::ThrowError(try_catch.Exception());
@@ -34,7 +34,7 @@ OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data, int s
   };
 
   TryCatch try_catch;
-  abort = iterator->Call(Nan::GetCurrentContext()->Global(), 2, argv);
+  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 2, argv)).ToLocalChecked();
 
   if (try_catch.HasCaught()) {
     Nan::ThrowError(try_catch.Exception());
@@ -50,15 +50,15 @@ OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(HeapStatsUpda
   Local<Array> samples = Nan::New<Array>();
   for (int index = 0; index < count; index++) {
     int offset = index * 3;
-    samples->Set(offset, Nan::New<Integer>(data[index].index));
-    samples->Set(offset + 1, Nan::New<Integer>(data[index].count));
-    samples->Set(offset + 2, Nan::New<Integer>(data[index].size));
+    Nan::Set(samples, offset, Nan::New<Integer>(data[index].index));
+    Nan::Set(samples, offset + 1, Nan::New<Integer>(data[index].count));
+    Nan::Set(samples, offset + 2, Nan::New<Integer>(data[index].size));
   }
 
   Local<Value> argv[1] = {samples};
 
   TryCatch try_catch;
-  abort = iterator->Call(Nan::GetCurrentContext()->Global(), 1, argv);
+  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 1, argv)).ToLocalChecked();
 
   if (try_catch.HasCaught()) {
     Nan::ThrowError(try_catch.Exception());
