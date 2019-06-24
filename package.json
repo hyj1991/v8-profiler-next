@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/hyj1991/v8-profiler-next#readme",
   "files": [
-    "src"
+    "src",
+    "dispatch.js",
+    "binding.gyp"
   ],
   "dependencies": {
     "nan": "^2.8.0"
