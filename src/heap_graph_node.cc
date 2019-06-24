@@ -67,7 +67,7 @@ Local<Value> GraphNode::New(const HeapGraphNode* node) {
   Local<Object> _cache = Nan::New(graph_node_cache);
   int32_t _id = node->GetId();
   if (_cache->Has(Nan::New<Number>(_id))) {
-    graph_node = _cache->Get(_id)->ToObject();
+    graph_node = Nan::To<Object>(_cache->Get(_id)).ToLocalChecked();
   } else {
     graph_node = Nan::New(graph_node_template_)->NewInstance();
     Nan::SetInternalFieldPointer(graph_node, 0, const_cast<HeapGraphNode*>(node));
