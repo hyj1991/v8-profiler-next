@@ -111,7 +111,7 @@ NAN_METHOD(HeapProfiler::GetHeapObjectId) {
 }
 
 NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
-  SnapshotObjectId id = info[0]->Uint32Value();
+  SnapshotObjectId id = Nan::To<uint32_t>(info[0]).ToChecked();
   Local<Value> object;
 #if (NODE_MODULE_VERSION > 0x000B)
   object = v8::Isolate::GetCurrent()->GetHeapProfiler()->FindObjectById(id);
@@ -130,8 +130,8 @@ NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
       snapshot = Nan::To<Object>(Nan::Get(snapshots, uid).ToLocalChecked()).ToLocalChecked();
 
       Local<Value> argv[] = { info[0] };
-      Local<Object> graph_node = Function::Cast(*snapshot->Get(Nan::New<String>("getNodeById").ToLocalChecked()))
-                                 ->Call(snapshot, 1, argv)->ToObject();
+      Local<Object> graph_node = Nan::To<Object>(Function::Cast(*snapshot->Get(Nan::New<String>("getNodeById").ToLocalChecked()))
+                                 ->Call(snapshot, 1, argv)).ToLocalChecked();
       object = Function::Cast(*graph_node->Get(Nan::New<String>("getHeapValue").ToLocalChecked()))
                ->Call(graph_node, 0, NULL);
       break;

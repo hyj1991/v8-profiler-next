@@ -69,8 +69,8 @@ NAN_METHOD(SamplingHeapProfile::StartSamplingHeapProfiling) {
     if (!info[1]->IsNumber()) {
       return Nan::ThrowTypeError("first argument type must be number");
     }
-    uint64_t sample_interval = info[0].As<Integer>()->Uint32Value();
-    int stack_depth = info[1].As<Integer>()->IntegerValue();
+    uint64_t sample_interval = Nan::To<uint32_t>(info[0]).ToChecked();
+    int stack_depth = Nan::To<Integer>(info[1]).ToLocalChecked()->Value();
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler(sample_interval, stack_depth);
   } else {
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler();

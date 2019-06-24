@@ -59,7 +59,7 @@ NAN_METHOD(Snapshot::GetNode) {
     return Nan::ThrowTypeError("Argument must be an integer");
   }
 
-  int32_t index = info[0]->Int32Value();
+  int32_t index = Nan::To<int32_t>(info[0]).ToChecked();
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
   info.GetReturnValue().Set(GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNode(index)));
 }
@@ -71,7 +71,7 @@ NAN_METHOD(Snapshot::GetNodeById) {
     return Nan::ThrowTypeError("Argument must be an integer");
   }
 
-  SnapshotObjectId id = info[0]->Int32Value();
+  SnapshotObjectId id = Nan::To<int32_t>(info[0]).ToChecked();
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
   info.GetReturnValue().Set(GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNodeById(id)));
 }
