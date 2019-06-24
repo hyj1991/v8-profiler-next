@@ -28,6 +28,6 @@
     "README.md"
   ],
   "dependencies": {
-    "nan": "^2.10.0"
+    "nan": "^2.14.0"
   }
 }
