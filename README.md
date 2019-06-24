@@ -7,7 +7,7 @@
 
 ## I. Quick Start
 
-Support Node v4.x ~ v10.x
+Support Node v4.x ~ v12.x
 
 ### take cpu profile
 

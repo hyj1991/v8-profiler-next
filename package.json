@@ -1,6 +1,6 @@
 {
   "name": "v8-profiler-next",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
