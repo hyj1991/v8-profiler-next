@@ -3,7 +3,6 @@
 
 namespace nodex {
 using v8::CpuProfile;
-using v8::Handle;
 using v8::Local;
 using v8::Object;
 using v8::Array;

@@ -5,7 +5,6 @@ namespace nodex {
 using v8::Array;
 using v8::CpuProfile;
 using v8::CpuProfileNode;
-using v8::Handle;
 using v8::Number;
 using v8::Integer;
 using v8::Local;
