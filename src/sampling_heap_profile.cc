@@ -21,14 +21,14 @@ Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
 
   // add call frame
   Local<Object> call_frame = Nan::New<Object>();
-  call_frame->Set(Nan::New<String>("functionName").ToLocalChecked(), node->name);
-  call_frame->Set(Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->script_id));
+  Nan::Set(call_frame, Nan::New<String>("functionName").ToLocalChecked(), node->name);
+  Nan::Set(call_frame, Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->script_id));
   // Local<String> url = String::Concat(node->script_name->ToString(), Nan::New<String>(":").ToLocalChecked());
   // url = String::Concat(url->ToString(), Nan::New<String>(std::to_string(node->line_number)).ToLocalChecked());
-  call_frame->Set(Nan::New<String>("url").ToLocalChecked(), node->script_name);
-  call_frame->Set(Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->line_number));
-  call_frame->Set(Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->column_number));
-  js_node->Set(Nan::New<String>("callFrame").ToLocalChecked(), call_frame);
+  Nan::Set(call_frame, Nan::New<String>("url").ToLocalChecked(), node->script_name);
+  Nan::Set(call_frame, Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->line_number));
+  Nan::Set(call_frame, Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->column_number));
+  Nan::Set(js_node, Nan::New<String>("callFrame").ToLocalChecked(), call_frame);
 
   // add self size
   int selfSize = 0;
@@ -36,14 +36,14 @@ Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
     AllocationProfile::Allocation alloc = node->allocations[i];
     selfSize += alloc.size * alloc.count;
   }
-  js_node->Set(Nan::New<String>("selfSize").ToLocalChecked(), Nan::New<Integer>(selfSize));
+  Nan::Set(js_node, Nan::New<String>("selfSize").ToLocalChecked(), Nan::New<Integer>(selfSize));
 
   // add children
   Local<Array> children = Nan::New<Array>(node->children.size());
   for (size_t i = 0; i < node->children.size(); i++) {
-    children->Set(i, TranslateAllocationProfile(node->children[i]));
+    Nan::Set(children, i, TranslateAllocationProfile(node->children[i]));
   }
-  js_node->Set(Nan::New<String>("children").ToLocalChecked(), children);
+  Nan::Set(js_node, Nan::New<String>("children").ToLocalChecked(), children);
 
   return js_node;
 }
@@ -57,7 +57,7 @@ void SamplingHeapProfile::Initialize (Local<Object> target) {
   Nan::SetMethod(samplingHeapProfile, "startSamplingHeapProfiling", SamplingHeapProfile::StartSamplingHeapProfiling);
   Nan::SetMethod(samplingHeapProfile, "stopSamplingHeapProfiling", SamplingHeapProfile::StopSamplingHeapProfiling);
   // set  samplingHeap
-  target->Set(Nan::New<String>("samplingHeap").ToLocalChecked(), samplingHeapProfile);
+  Nan::Set(target, Nan::New<String>("samplingHeap").ToLocalChecked(), samplingHeapProfile);
 }
 
 NAN_METHOD(SamplingHeapProfile::StartSamplingHeapProfiling) {
@@ -86,7 +86,7 @@ NAN_METHOD(SamplingHeapProfile::StopSamplingHeapProfiling) {
   // translate
   Local<Object> js_node = TranslateAllocationProfile(root);
   Local<Object> result = Nan::New<Object>();
-  result->Set(Nan::New<String>("head").ToLocalChecked(), js_node);
+  Nan::Set(result, Nan::New<String>("head").ToLocalChecked(), js_node);
   info.GetReturnValue().Set(result);
   free(profile);
   // stop sampling heap profile

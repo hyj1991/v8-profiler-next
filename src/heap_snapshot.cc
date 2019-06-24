@@ -40,7 +40,7 @@ void Snapshot::Initialize () {
 NAN_GETTER(Snapshot::GetRoot) {
   Local<Object> _root;
   Local<String> __root = Nan::New<String>("_root").ToLocalChecked();
-  if (info.This()->Has(__root)) {
+  if (Nan::Has(info.This(), __root).ToChecked()) {
     Local<Value> root = Nan::GetPrivate(info.This(), __root).ToLocalChecked();
     info.GetReturnValue().Set(root);
   } else {
@@ -110,7 +110,13 @@ Local<Value> Snapshot::New(const HeapSnapshot* node) {
     Snapshot::Initialize();
   }
 
-  Local<Object> snapshot = Nan::New(snapshot_template_)->NewInstance();
+  Local<Object> snapshot;
+#if (NODE_MODULE_VERSION > 0x0040)
+    snapshot = Nan::New(snapshot_template_)
+      ->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
+#else
+    snapshot = Nan::New(snapshot_template_)->NewInstance();
+#endif
   Nan::SetInternalFieldPointer(snapshot, 0, const_cast<HeapSnapshot*>(node));
 
   Local<Value> HEAP = Nan::New<String>("HEAP").ToLocalChecked();
@@ -126,11 +132,11 @@ Local<Value> Snapshot::New(const HeapSnapshot* node) {
   Local<Integer> nodesCount = Nan::New<Integer>(node->GetNodesCount());
   Local<Integer> objectId = Nan::New<Integer>(node->GetMaxSnapshotJSObjectId());
 
-  snapshot->Set(Nan::New<String>("typeId").ToLocalChecked(), HEAP);
-  snapshot->Set(Nan::New<String>("title").ToLocalChecked(), title);
-  snapshot->Set(Nan::New<String>("uid").ToLocalChecked(), uid);
-  snapshot->Set(Nan::New<String>("nodesCount").ToLocalChecked(), nodesCount);
-  snapshot->Set(Nan::New<String>("maxSnapshotJSObjectId").ToLocalChecked(), objectId);
+  Nan::Set(snapshot, Nan::New<String>("typeId").ToLocalChecked(), HEAP);
+  Nan::Set(snapshot, Nan::New<String>("title").ToLocalChecked(), title);
+  Nan::Set(snapshot, Nan::New<String>("uid").ToLocalChecked(), uid);
+  Nan::Set(snapshot, Nan::New<String>("nodesCount").ToLocalChecked(), nodesCount);
+  Nan::Set(snapshot, Nan::New<String>("maxSnapshotJSObjectId").ToLocalChecked(), objectId);
 
   Local<Object> snapshots = Nan::New<Object>(Snapshot::snapshots);
   Nan::Set(snapshots, _uid, snapshot);

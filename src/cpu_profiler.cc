@@ -24,14 +24,14 @@ void CpuProfiler::Initialize (Local<Object> target) {
   Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
   Nan::SetMethod(cpuProfiler, "setSamplingInterval", CpuProfiler::SetSamplingInterval);
-  cpuProfiler->Set(Nan::New<String>("profiles").ToLocalChecked(), profiles);
+  Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(), profiles);
 
   Profile::profiles.Reset(profiles);
-  target->Set(Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
+  Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
 }
 
 NAN_METHOD(CpuProfiler::StartProfiling) {
-  Local<String> title = info[0]->ToString();
+  Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
 
 #if (NODE_MODULE_VERSION > 0x0039)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
@@ -50,7 +50,7 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   Local<String> title = Nan::EmptyString();
   if (info.Length()) {
     if (info[0]->IsString()) {
-      title = info[0]->ToString();
+      title = Nan::To<String>(info[0]).ToLocalChecked();
     } else if (!info[0]->IsUndefined()) {
       return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
     }

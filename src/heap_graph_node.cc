@@ -49,9 +49,9 @@ NAN_GETTER(GraphNode::GetChildren) {
   Local<Array> children = Nan::New<Array>(count);
   for (uint32_t index = 0; index < count; ++index) {
     Local<Value> child = GraphEdge::New(node->GetChild(index));
-    children->Set(index, child);
+    Nan::Set(children, index, child);
   }
-  info.This()->Set(Nan::New<String>("children").ToLocalChecked(), children);
+  Nan::Set(info.This(), Nan::New<String>("children").ToLocalChecked(), children);
   info.GetReturnValue().Set(children);
 }
 
@@ -65,10 +65,15 @@ Local<Value> GraphNode::New(const HeapGraphNode* node) {
   Local<Object> graph_node;
   Local<Object> _cache = Nan::New(graph_node_cache);
   int32_t _id = node->GetId();
-  if (_cache->Has(Nan::New<Number>(_id))) {
-    graph_node = Nan::To<Object>(_cache->Get(_id)).ToLocalChecked();
+  if (Nan::Has(_cache, _id).ToChecked()) {
+    graph_node = Nan::To<Object>(Nan::Get(_cache, _id).ToLocalChecked()).ToLocalChecked();
   } else {
-    graph_node = Nan::New(graph_node_template_)->NewInstance();
+#if (NODE_MODULE_VERSION > 0x0040)
+      graph_node = Nan::New(graph_node_template_)
+        ->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
+#else
+      graph_node = Nan::New(graph_node_template_)->NewInstance();
+#endif
     Nan::SetInternalFieldPointer(graph_node, 0, const_cast<HeapGraphNode*>(node));
 
     Local<Value> type;
@@ -117,16 +122,15 @@ Local<Value> GraphNode::New(const HeapGraphNode* node) {
     Local<String> name = Nan::New<String>(node->GetName());
 #endif
     Local<Value> id = Nan::New<Number>(_id);
-    graph_node->Set(Nan::New<String>("type").ToLocalChecked(), type);
-    graph_node->Set(Nan::New<String>("name").ToLocalChecked(), name);
-    graph_node->Set(Nan::New<String>("id").ToLocalChecked(), id);
+    Nan::Set(graph_node, Nan::New<String>("type").ToLocalChecked(), type);
+    Nan::Set(graph_node, Nan::New<String>("name").ToLocalChecked(), name);
+    Nan::Set(graph_node, Nan::New<String>("id").ToLocalChecked(), id);
 
 #if (NODE_MODULE_VERSION > 0x000B)
     Local<Value> shallowSize = Nan::New<Number>(node->GetShallowSize());
-    graph_node->Set(Nan::New<String>("shallowSize").ToLocalChecked(), shallowSize);
+    Nan::Set(graph_node, Nan::New<String>("shallowSize").ToLocalChecked(), shallowSize);
 #endif
-
-    _cache->Set(_id, graph_node);
+    Nan::Set(_cache, _id, graph_node);
   }
 
   return scope.Escape(graph_node);

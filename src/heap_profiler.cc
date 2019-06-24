@@ -32,7 +32,7 @@ public:
     };
 
     TryCatch try_catch;
-    abort = reportProgress->Call(Nan::GetCurrentContext()->Global(), 2, argv);
+    abort = (Nan::Call(reportProgress, Nan::GetCurrentContext()->Global(), 2, argv)).ToLocalChecked();
 
     if (try_catch.HasCaught()) {
       Nan::ThrowError(try_catch.Exception());
@@ -59,10 +59,10 @@ void HeapProfiler::Initialize (Local<Object> target) {
   Nan::SetMethod(heapProfiler, "getHeapStats", HeapProfiler::GetHeapStats);
   Nan::SetMethod(heapProfiler, "getObjectByHeapObjectId", HeapProfiler::GetObjectByHeapObjectId);
   Nan::SetMethod(heapProfiler, "getHeapObjectId", HeapProfiler::GetHeapObjectId);
-  heapProfiler->Set(Nan::New<String>("snapshots").ToLocalChecked(), snapshots);
+  Nan::Set(heapProfiler, Nan::New<String>("snapshots").ToLocalChecked(), snapshots);
 
   Snapshot::snapshots.Reset(snapshots);
-  target->Set(Nan::New<String>("heap").ToLocalChecked(), heapProfiler);
+  Nan::Set(target, Nan::New<String>("heap").ToLocalChecked(), heapProfiler);
 }
 
 NAN_METHOD(HeapProfiler::TakeSnapshot) {
@@ -70,7 +70,7 @@ NAN_METHOD(HeapProfiler::TakeSnapshot) {
   ActivityControlAdapter* control = new ActivityControlAdapter(info[1]);
 #endif
 #if (NODE_MODULE_VERSION < 0x000F)
-  Local<String> title = info[0]->ToString();
+  Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
 #endif
 
 #if (NODE_MODULE_VERSION > 0x0038)
