@@ -35,10 +35,10 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
   Local<String> title = info[0]->ToString();
 
 #if (NODE_MODULE_VERSION > 0x0039)
-  bool recsamples = info[1]->ToBoolean()->Value();
+  bool recsamples = Nan::To<bool>(info[1]).ToChecked();
   current_cpuprofiler->StartProfiling(title, recsamples);
 #elif (NODE_MODULE_VERSION > 0x000B)
-  bool recsamples = info[1]->ToBoolean()->Value();
+  bool recsamples = Nan::To<bool>(info[1]).ToChecked();
   v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
 #else
   v8::CpuProfiler::StartProfiling(title);
@@ -70,9 +70,9 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 #if (NODE_MODULE_VERSION > 0x0039)
-  current_cpuprofiler->SetSamplingInterval(info[0]->Uint32Value());
+  current_cpuprofiler->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
 #elif (NODE_MODULE_VERSION > 0x000B)
-  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(info[0]->Uint32Value());
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
 #endif
 }
 } //namespace nodex
