@@ -2,7 +2,6 @@
 
 namespace nodex {
 using v8::CpuProfileNode;
-using v8::Handle;
 using v8::String;
 using v8::Number;
 using v8::Integer;

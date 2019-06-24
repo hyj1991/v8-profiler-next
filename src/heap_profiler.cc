@@ -6,7 +6,6 @@ namespace nodex {
 using v8::ActivityControl;
 using v8::Array;
 using v8::Function;
-using v8::Handle;
 using v8::HeapSnapshot;
 using v8::Integer;
 using v8::Local;

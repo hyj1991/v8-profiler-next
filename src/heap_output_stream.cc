@@ -2,7 +2,6 @@
 
 namespace nodex {
 using v8::Array;
-using v8::Handle;
 using v8::HeapStatsUpdate;
 using v8::Local;
 using v8::Value;

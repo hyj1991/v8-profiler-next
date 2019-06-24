@@ -2,7 +2,6 @@
 #include "heap_graph_edge.h"
 
 namespace nodex {
-using v8::Handle;
 using v8::HeapGraphEdge;
 using v8::Integer;
 using v8::Local;
