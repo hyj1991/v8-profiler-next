@@ -8,3 +8,6 @@ index_prod.html
 coverage
 tmp
 .vscode
+*.heapsnapshot
+*.cpuprofile
+*.heapprofile
