@@ -47,6 +47,8 @@ transform.on('finish', snapshot.delete.bind(snapshot));
 
 ### take allocation profile
 
+**Attention:** Please use sampling heap profiling alone, without cpu profiling or taking snapshot.
+
 ```js
 'use strict';
 const v8Profiler = require('v8-profiler-next');
