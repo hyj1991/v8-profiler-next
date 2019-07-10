@@ -1,13 +1,21 @@
 # v8-profiler-next
 
-[![npm version](https://badge.fury.io/js/v8-profiler-next.svg)](https://badge.fury.io/js/v8-profiler-next)
+[![npm version](https://img.shields.io/npm/v/v8-profiler-next/latest.svg)](https://www.npmjs.com/package/v8-profiler-next)
 [![Package Quality](http://npm.packagequality.com/shield/v8-profiler-next.svg)](http://packagequality.com/#?package=v8-profiler-next)
-[![npm](https://img.shields.io/npm/dt/v8-profiler-next.svg)](https://www.npmjs.com/package/v8-profiler-next)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
+[![linux build status](https://travis-ci.org/hyj1991/v8-profiler-next.svg?branch=master)](https://travis-ci.org/hyj1991/v8-profiler-next)
+[![windows build status](https://ci.appveyor.com/api/projects/status/vp54r2t137iirntf?svg=true)](https://ci.appveyor.com/project/hyj1991/v8-profiler-next)
+[![downloads info](https://img.shields.io/npm/dm/v8-profiler-next.svg)](https://www.npmjs.com/package/v8-profiler-next)
+[![license](https://img.shields.io/npm/l/v8-profiler-next.svg)](LICENSE)
+
+## Description
+
+v8-profiler-next provides [node](http://github.com/nodejs/node) bindings for the v8 profiler.
 
 ## I. Quick Start
 
-Support Node v4.x ~ v12.x
+* **Compatibility**
+  * **node version:** v4.x ~ v12.x
+  * **platform:** mac, linux, windows
 
 ### take cpu profile
 
