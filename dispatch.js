@@ -287,7 +287,7 @@ let profiler = {
 
     stopSamplingHeapProfiling: function () {
         if (process.versions.modules < 48)
-            throw new Error('Sampling heap profiler needs node version >= node-v6.0.0 !');
+            throw new Error('Sampling heap profiler needs node version >= node-v6.0.0!');
         let profile = binding.samplingHeap.stopSamplingHeapProfiling();
         profile.__proto__ = SamplingHeapProfile.prototype;
         return profile;

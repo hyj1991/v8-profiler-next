@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
-const v8Profiler = require('..');
+const v8Profiler = require('../dispatch');
 const version = process.version;
 const title = '';
 
