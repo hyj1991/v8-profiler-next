@@ -24,6 +24,7 @@
     "src",
     "binding.gyp",
     "dispatch.js",
+    "index.d.ts",
     "LICENSE",
     "README.md"
   ],
