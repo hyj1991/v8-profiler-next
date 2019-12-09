@@ -23,7 +23,8 @@
   "files": [
     "src",
     "binding.gyp",
-    "dispatch.js",
+	"dispatch.js",
+	"index.d.ts",
     "LICENSE",
     "README.md"
   ],
