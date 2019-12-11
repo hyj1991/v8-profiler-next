@@ -72,7 +72,7 @@ type DataReceiver = (
 
 export class ExportStream extends Stream.Transform {}
 
-export class Snapshot {
+export class Snapshot extends Profile {
   getHeader(): Header;
   compare(other: Snapshot): Object;
   getNode(index: number): SnapshotNode;
