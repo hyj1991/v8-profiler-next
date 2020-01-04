@@ -14,7 +14,7 @@ v8-profiler-next provides [node](http://github.com/nodejs/node) bindings for the
 ## I. Quick Start
 
 * **Compatibility**
-  * **node version:** v4.x ~ v12.x
+  * **node version:** v4.x ~ v13.x
   * **platform:** mac, linux, windows
 
 ### take cpu profile
