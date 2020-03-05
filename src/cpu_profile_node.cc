@@ -53,7 +53,10 @@ Local<Value> ProfileNode::New (const CpuProfileNode* node) {
   Nan::Set(profile_node, Nan::New<String>("functionName").ToLocalChecked(), node->GetFunctionName());
   Nan::Set(profile_node, Nan::New<String>("url").ToLocalChecked(), node->GetScriptResourceName());
   Nan::Set(profile_node, Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->GetLineNumber()));
+  Nan::Set(profile_node, Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->GetColumnNumber()));
+#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION < 8)
   Nan::Set(profile_node, Nan::New<String>("callUID").ToLocalChecked(), Nan::New<Number>(node->GetCallUid()));
+#endif
 #if (NODE_MODULE_VERSION > 0x000B)
   Nan::Set(profile_node, Nan::New<String>("bailoutReason").ToLocalChecked(), Nan::New<String>(node->GetBailoutReason()).ToLocalChecked());
   Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(), Nan::New<Integer>(node->GetNodeId()));
