@@ -1,6 +1,6 @@
 {
   "name": "v8-profiler-next",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "nan": "^2.14.0"
+    "nan": "^2.14.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",

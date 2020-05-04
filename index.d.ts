@@ -107,7 +107,7 @@ export interface CpuProfileNode {
   functionName: string;
   url: string;
   lineNumber: number;
-  callUID: number;
+  callUID?: number;
   bailoutReason: string;
   id: number;
   scriptId: number;

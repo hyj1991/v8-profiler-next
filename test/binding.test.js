@@ -59,7 +59,7 @@ describe('binding', function () {
       it('has expected structure', function () {
         cpu.startProfiling('P');
         const profile = cpu.stopProfiling();
-        const mainProps = ['functionName', 'url', 'lineNumber', 'callUID', 'children',
+        const mainProps = ['functionName', 'url', 'lineNumber', 'children',
           'bailoutReason', 'id', 'hitCount'];
         const extendedProps = NODE_V_010 ? [] : ['scriptId'];
         const properties = mainProps.concat(extendedProps);
