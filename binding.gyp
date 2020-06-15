@@ -2,7 +2,8 @@
   'targets': [
     {
       'target_name': 'profiler',
-      'win_delay_load_hook': 'false',
+      # Electron 4+ requires this to be true
+      'win_delay_load_hook': 'true',
       'sources': [
         'src/profiler.cc',
         'src/cpu_profiler.cc',
