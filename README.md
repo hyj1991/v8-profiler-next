@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/v8-profiler-next/latest.svg)](https://www.npmjs.com/package/v8-profiler-next)
 [![Package Quality](http://npm.packagequality.com/shield/v8-profiler-next.svg)](http://packagequality.com/#?package=v8-profiler-next)
-[![linux build status](https://travis-ci.org/hyj1991/v8-profiler-next.svg?branch=master)](https://travis-ci.org/hyj1991/v8-profiler-next)
+[![Linux/osx build status](https://github.com/hyj1991/v8-profiler-next/workflows/Continuous%20integration/badge.svg?branch=master)](https://github.com/hyj1991/v8-profiler-next/actions?query=branch%3Amaster)
 [![windows build status](https://ci.appveyor.com/api/projects/status/vp54r2t137iirntf?svg=true)](https://ci.appveyor.com/project/hyj1991/v8-profiler-next)
 [![downloads info](https://img.shields.io/npm/dm/v8-profiler-next.svg)](https://www.npmjs.com/package/v8-profiler-next)
 [![license](https://img.shields.io/npm/l/v8-profiler-next.svg)](LICENSE)
@@ -14,7 +14,7 @@ v8-profiler-next provides [node](http://github.com/nodejs/node) bindings for the
 ## I. Quick Start
 
 * **Compatibility**
-  * **node version:** v4.x ~ v14.x
+  * **node version:** v4.x ~ v16.x
   * **platform:** mac, linux, windows
 
 ### take cpu profile
