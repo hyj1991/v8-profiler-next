@@ -4,7 +4,7 @@
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
-    "test": "mocha test/*.test.js --timeout 5000"
+    "test": "mocha test/*.test.js --timeout 10000"
   },
   "repository": {
     "type": "git",
