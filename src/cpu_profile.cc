@@ -17,7 +17,7 @@ using v8::Value;
 
 Nan::Persistent<ObjectTemplate> Profile::profile_template_;
 Nan::Persistent<Object> Profile::profiles;
-uint32_t Profile::uid_counter = 0;
+uint32_t Profile::uid_counter = -1;
 
 NAN_METHOD(Profile_EmptyMethod) {
 }
@@ -34,15 +34,15 @@ void Profile::Initialize () {
 
 NAN_METHOD(Profile::Delete) {
   Local<Object> self = info.This();
-  void* ptr = Nan::GetInternalFieldPointer(self, 0);
+  // void* ptr = Nan::GetInternalFieldPointer(self, 0);
   Local<Object> profiles = Nan::New<Object>(Profile::profiles);
   Local<Value> _uid = Nan::Get(info.This(), Nan::New<String>("uid").ToLocalChecked()).ToLocalChecked();
   Local<String> uid = Nan::To<String>(_uid).ToLocalChecked();
+  // static_cast<CpuProfile*>(ptr)->Delete();
   Nan::Delete(profiles, uid);
-  static_cast<CpuProfile*>(ptr)->Delete();
 }
 
-Local<Value> Profile::New (const CpuProfile* node) {
+Local<Object> Profile::New (const CpuProfile* node) {
   Nan::EscapableHandleScope scope;
 
   if (profile_template_.IsEmpty()) {
