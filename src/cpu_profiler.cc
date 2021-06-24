@@ -20,7 +20,7 @@ void CpuProfiler::Initialize (Local<Object> target) {
   Nan::HandleScope scope;
 
   Local<Object> cpuProfiler = Nan::New<Object>();
-  Local<Object> profiles = Nan::New<Object>();
+  Local<Array> profiles = Nan::New<Array>();
 
   Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
@@ -71,12 +71,14 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   Local<Object> result = Profile::New(profile);
   info.GetReturnValue().Set(result);
 
+#if (NODE_MODULE_VERSION > 0x0039)
   profile->Delete();
   --m_startedProfilesCount;
   if (!m_startedProfilesCount) {
     m_profiler->Dispose();
     m_profiler = nullptr;
   }
+#endif
 }
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
