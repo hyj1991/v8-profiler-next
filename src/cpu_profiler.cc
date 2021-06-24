@@ -14,6 +14,7 @@ CpuProfiler::~CpuProfiler () {}
 #if (NODE_MODULE_VERSION > 0x0039)
 int m_startedProfilesCount = 0;
 v8::CpuProfiler* m_profiler = nullptr;
+uint32_t samplingInterval = 0;
 #endif
 
 void CpuProfiler::Initialize (Local<Object> target) {
@@ -40,6 +41,9 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
       m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
   }
   ++m_startedProfilesCount;
+  if (samplingInterval){
+      m_profiler->SetSamplingInterval(samplingInterval);
+  }
   m_profiler->StartProfiling(title, recsamples);
 #elif (NODE_MODULE_VERSION > 0x000B)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
@@ -83,10 +87,7 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 #if (NODE_MODULE_VERSION > 0x0039)
-  if (!m_startedProfilesCount) {
-      m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
-  }
-  m_profiler->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
+  samplingInterval = Nan::To<uint32_t>(info[0]).ToChecked();
 #elif (NODE_MODULE_VERSION > 0x000B)
   v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
 #endif

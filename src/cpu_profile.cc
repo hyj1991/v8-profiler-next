@@ -33,7 +33,7 @@ void Profile::Initialize () {
 }
 
 NAN_METHOD(Profile::Delete) {
-  Local<Object> self = info.This();
+  // Local<Object> self = info.This();
   // void* ptr = Nan::GetInternalFieldPointer(self, 0);
   Local<Object> profiles = Nan::New<Object>(Profile::profiles);
   Local<Value> _uid = Nan::Get(info.This(), Nan::New<String>("uid").ToLocalChecked()).ToLocalChecked();
