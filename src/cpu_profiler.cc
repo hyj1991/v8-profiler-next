@@ -12,14 +12,15 @@ CpuProfiler::CpuProfiler () {}
 CpuProfiler::~CpuProfiler () {}
 
 #if (NODE_MODULE_VERSION > 0x0039)
-v8::CpuProfiler* current_cpuprofiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+int m_startedProfilesCount = 0;
+v8::CpuProfiler* m_profiler = nullptr;
 #endif
 
 void CpuProfiler::Initialize (Local<Object> target) {
   Nan::HandleScope scope;
 
   Local<Object> cpuProfiler = Nan::New<Object>();
-  Local<Array> profiles = Nan::New<Array>();
+  Local<Object> profiles = Nan::New<Object>();
 
   Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
@@ -35,7 +36,11 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
 
 #if (NODE_MODULE_VERSION > 0x0039)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
-  current_cpuprofiler->StartProfiling(title, recsamples);
+  if (!m_startedProfilesCount) {
+      m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+  }
+  ++m_startedProfilesCount;
+  m_profiler->StartProfiling(title, recsamples);
 #elif (NODE_MODULE_VERSION > 0x000B)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
   v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
@@ -45,8 +50,7 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
 }
 
 NAN_METHOD(CpuProfiler::StopProfiling) {
-  const CpuProfile* profile;
-
+  CpuProfile* profile;
   Local<String> title = Nan::EmptyString();
   if (info.Length()) {
     if (info[0]->IsString()) {
@@ -57,19 +61,30 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   }
 
 #if (NODE_MODULE_VERSION > 0x0039)
-  profile = current_cpuprofiler->StopProfiling(title);
+  profile = m_profiler->StopProfiling(title);
 #elif (NODE_MODULE_VERSION > 0x000B)
   profile = v8::Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
 #else
   profile = v8::CpuProfiler::StopProfiling(title);
 #endif
 
-  info.GetReturnValue().Set(Profile::New(profile));
+  Local<Object> result = Profile::New(profile);
+  info.GetReturnValue().Set(result);
+
+  profile->Delete();
+  --m_startedProfilesCount;
+  if (!m_startedProfilesCount) {
+    m_profiler->Dispose();
+    m_profiler = nullptr;
+  }
 }
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 #if (NODE_MODULE_VERSION > 0x0039)
-  current_cpuprofiler->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
+  if (!m_startedProfilesCount) {
+      m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+  }
+  m_profiler->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
 #elif (NODE_MODULE_VERSION > 0x000B)
   v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
 #endif
