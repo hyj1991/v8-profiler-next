@@ -27,8 +27,8 @@ export function startTrackingHeapObjects(): void;
 export function stopTrackingHeapObjects(): void;
 export function getHeapObjectId(value: Object): number;
 export function setSamplingInterval(num: number): void;
-export function takeSnapshot(control: Function): Snapshot;
-export function takeSnapshot(name: string, control: Function): Snapshot;
+export function takeSnapshot(control?: Function): Snapshot;
+export function takeSnapshot(name?: string, control?: Function): Snapshot;
 export function getHeapStats(
   iterator: Function | undefined,
   callback: Function | undefined
