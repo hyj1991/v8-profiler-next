@@ -21,8 +21,14 @@ v8-profiler-next provides [node](http://github.com/nodejs/node) bindings for the
 
 ```js
 'use strict';
+const fs = require('fs');
 const v8Profiler = require('v8-profiler-next');
 const title = 'good-name';
+
+// set generateType 1 to generate new format for cpuprofile
+// to be compatible with cpuprofile parsing in vscode.
+v8Profiler.setGenerateType(1);
+
 // ex. 5 mins cpu profile
 v8Profiler.startProfiling(title, true);
 setTimeout(() => {
