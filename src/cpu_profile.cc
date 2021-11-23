@@ -42,7 +42,7 @@ NAN_METHOD(Profile::Delete) {
   Nan::Delete(profiles, uid);
 }
 
-Local<Object> Profile::New (const CpuProfile* node) {
+Local<Object> Profile::New (const CpuProfile* node, uint32_t type) {
   Nan::EscapableHandleScope scope;
 
   if (profile_template_.IsEmpty()) {
@@ -77,29 +77,49 @@ Local<Object> Profile::New (const CpuProfile* node) {
     sprintf(_title, "Profile %i", uid_counter);
     title = Nan::New<String>(_title).ToLocalChecked();
   }
-  Local<Value> head = ProfileNode::New(node->GetTopDownRoot());
+  Local<Value> head = ProfileNode::New(node->GetTopDownRoot(), type);
 
   Nan::Set(profile, Nan::New<String>("typeId").ToLocalChecked(), CPU);
   Nan::Set(profile, Nan::New<String>("uid").ToLocalChecked(), uid);
   Nan::Set(profile, Nan::New<String>("title").ToLocalChecked(), title);
-  Nan::Set(profile, Nan::New<String>("head").ToLocalChecked(), head);
+  if(type == 0) {
+    Nan::Set(profile, Nan::New<String>("head").ToLocalChecked(), head);
+  } else if(type == 1) {
+    Nan::Set(profile, Nan::New<String>("nodes").ToLocalChecked(), head);
+  }
 
 #if (NODE_MODULE_VERSION > 0x000B)
-  Local<Value> start_time = Nan::New<Number>(node->GetStartTime() / 1000000);
-  Local<Value> end_time = Nan::New<Number>(node->GetEndTime() / 1000000);
+  Local<Value> start_time;
+  Local<Value> end_time;
+  if(type == 0) {
+    start_time = Nan::New<Number>(node->GetStartTime() / 1000000);
+    end_time = Nan::New<Number>(node->GetEndTime() / 1000000);
+  } else if(type == 1) {
+    start_time = Nan::New<Number>(node->GetStartTime());
+    end_time = Nan::New<Number>(node->GetEndTime());
+  }
   Local<Array> samples = Nan::New<Array>();
   Local<Array> timestamps = Nan::New<Array>();
 
   uint32_t count = node->GetSamplesCount();
   for (uint32_t index = 0; index < count; ++index) {
     Nan::Set(samples, index, Nan::New<Integer>(node->GetSample(index)->GetNodeId()));
-    Nan::Set(timestamps, index, Nan::New<Number>(static_cast<double>(node->GetSampleTimestamp(index))));
+    if(type == 0) {
+      Nan::Set(timestamps, index, Nan::New<Number>(static_cast<double>(node->GetSampleTimestamp(index))));
+    } else if(type == 1) {
+      int64_t prev = index == 0 ? node->GetStartTime() : node->GetSampleTimestamp(index - 1);
+      Nan::Set(timestamps, index, Nan::New<Number>(static_cast<double>(node->GetSampleTimestamp(index)) - prev));
+    }
   }
 
   Nan::Set(profile, Nan::New<String>("startTime").ToLocalChecked(), start_time);
   Nan::Set(profile, Nan::New<String>("endTime").ToLocalChecked(), end_time);
   Nan::Set(profile, Nan::New<String>("samples").ToLocalChecked(), samples);
-  Nan::Set(profile, Nan::New<String>("timestamps").ToLocalChecked(), timestamps);
+  if(type == 0) {
+    Nan::Set(profile, Nan::New<String>("timestamps").ToLocalChecked(), timestamps);
+  } else if(type == 1) {
+    Nan::Set(profile, Nan::New<String>("timeDeltas").ToLocalChecked(), timestamps);
+  }
 #endif
 
   Local<Object> profiles = Nan::New<Object>(Profile::profiles);

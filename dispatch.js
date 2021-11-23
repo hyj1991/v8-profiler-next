@@ -218,6 +218,15 @@ let profiler = {
 
     get profiles() { return binding.cpu.profiles; },
 
+    setGenerateType: function (type) {
+        const types = [0, 1];
+        if (types.indexOf(type) > 0) {
+            binding.cpu.setGenerateType(type);
+        } else {
+            console.error(`type should in [${types.join(', ')}], got ${type}.`);
+        }
+    },
+
     startProfiling: function (name, recsamples) {
         if (activeProfiles.length == 0 && typeof process._startProfilerIdleNotifier == "function")
             process._startProfilerIdleNotifier();
@@ -228,7 +237,7 @@ let profiler = {
         }
 
         recsamples = recsamples === undefined ? true : Boolean(recsamples);
-        name = '' + name;
+        name = name && '' + name || '';
 
         if (activeProfiles.indexOf(name) < 0)
             activeProfiles.push(name)

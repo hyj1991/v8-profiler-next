@@ -17,6 +17,7 @@ protected:
   static NAN_METHOD(StartProfiling);
   static NAN_METHOD(StopProfiling);
   static NAN_METHOD(SetSamplingInterval);
+  static NAN_METHOD(SetGenerateType);
 };
 } //namespace nodex
 

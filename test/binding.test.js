@@ -35,12 +35,26 @@ describe('binding', function () {
     });
 
     describe('Profile', function () {
+      afterEach(() => cpu.setGenerateType(0));
+
       it('has expected structure', function () {
         cpu.startProfiling('', true);
         const profile = cpu.stopProfiling();
         const properties = NODE_V_010 ?
           ['delete', 'typeId', 'uid', 'title', 'head'] :
           ['delete', 'typeId', 'uid', 'title', 'head', 'startTime', 'endTime', 'samples', 'timestamps'];
+        properties.forEach(function (prop) {
+          expect(profile).to.have.property(prop);
+        });
+      });
+
+      it('has expected structure with generateType 1', function () {
+        cpu.setGenerateType(1);
+        cpu.startProfiling('', true);
+        const profile = cpu.stopProfiling();
+        const properties = NODE_V_010 ?
+          ['delete', 'typeId', 'uid', 'title', 'head'] :
+          ['delete', 'typeId', 'uid', 'title', 'nodes', 'startTime', 'endTime', 'samples', 'timeDeltas'];
         properties.forEach(function (prop) {
           expect(profile).to.have.property(prop);
         });
@@ -66,6 +80,31 @@ describe('binding', function () {
 
         properties.forEach(function (prop) {
           expect(profile.head).to.have.property(prop);
+        });
+      });
+    });
+
+    describe('Profile Nodes', function () {
+      it('has expected structure', function () {
+        cpu.setGenerateType(1);
+        cpu.startProfiling('P');
+        const profile = cpu.stopProfiling('P');
+        const mainProps = ['id', 'hitCount', 'callFrame', 'children'];
+        const callFrameMainProps = ['functionName', 'scriptId', 'lineNumber', 'columnNumber',
+          'bailoutReason', 'url'];
+        const extendedProps = NODE_V_010 ? [] : ['scriptId'];
+        const callFrameProps = callFrameMainProps.concat(extendedProps);
+
+        mainProps.forEach(function (prop) {
+          for (const node of profile.nodes) {
+            expect(node).to.have.property(prop);
+          }
+        });
+
+        callFrameProps.forEach(function (prop) {
+          for (const node of profile.nodes) {
+            expect(node.callFrame).to.have.property(prop);
+          }
         });
       });
     });

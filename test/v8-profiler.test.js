@@ -56,6 +56,19 @@ describe('v8-profiler', function () {
       });
     });
 
+    describe('CPU', function () {
+      it('should generate new formate when setGenerateType(1)', function () {
+        profiler.setGenerateType(1);
+        profiler.startProfiling(true);
+        const profile = profiler.stopProfiling();
+
+        expect(profile.nodes.length > 0).to.equal(true);
+        expect(!profile.head).to.equal(true);
+        expect(profile.timeDeltas.length > 0).to.equal(true);
+        expect(!profile.timestamps).to.equal(true);
+      });
+    })
+
     describe('Profile', function () {
       it('should export itself with callback', function () {
         profiler.startProfiling('', true);
