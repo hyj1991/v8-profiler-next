@@ -12,6 +12,7 @@ export function startProfiling(name?: string, recsamples?: boolean): void;
  * Stops the profiler for a specific profile.
  * @param name Name of the profile. "undefined" if not defined.
  */
+export function setGenerateType(type: 0 | 1): void;
 export function stopProfiling(name?: string): CpuProfile;
 export function deleteAllProfiles(): void;
 export function getObjectByHeapObjectId(id: number): Object;
