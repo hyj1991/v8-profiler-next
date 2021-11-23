@@ -8,10 +8,12 @@ namespace nodex {
 
 class ProfileNode {
 public:
-  static v8::Local<v8::Value> New(const v8::CpuProfileNode* node);
+  static v8::Local<v8::Value> New(const v8::CpuProfileNode* node, uint32_t type);
   static uint32_t UIDCounter;
 
 private:
+  static void setNodes_(const v8::CpuProfileNode* node, v8::Local<v8::Array> nodes, int* index);
+  static void getTotalCount_(const v8::CpuProfileNode* node, int* total);
 #if (NODE_MODULE_VERSION >= 42)
   static v8::Local<v8::Value> GetLineTicks_(const v8::CpuProfileNode* node);
 #endif

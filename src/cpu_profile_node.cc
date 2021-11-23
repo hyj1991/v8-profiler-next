@@ -39,44 +39,113 @@ Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
 }
 #endif
 
-Local<Value> ProfileNode::New (const CpuProfileNode* node) {
+void ProfileNode::getTotalCount_(const CpuProfileNode* node, int* total) {
+  (*total)++;
+  int32_t count = node->GetChildrenCount();
+  for (int32_t index = 0; index < count; index++) {
+    getTotalCount_(node->GetChild(index), total);
+  }
+}
+
+void ProfileNode::setNodes_(const CpuProfileNode* node, Local<Array> nodes, int* idx) {
   Nan::EscapableHandleScope scope;
 
+  Local<Object> profile_node = Nan::New<Object>();
+  int32_t count = node->GetChildrenCount();
+  Local<Array> children = Nan::New<Array>(count);
+  for (int32_t index = 0; index < count; index++) {
+    Nan::Set(children, index, Nan::New<Integer>(node->GetChild(index)->GetNodeId()));
+  }
+  #if (NODE_MODULE_VERSION > 0x000B)
+  Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(), Nan::New<Integer>(node->GetNodeId()));
+  Nan::Set(profile_node, Nan::New<String>("hitCount").ToLocalChecked(), Nan::New<Integer>(node->GetHitCount()));
+  #else
+  Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(), Nan::New<Integer>(UIDCounter++));
+  Nan::Set(profile_node, Nan::New<String>("hitCount").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(node->GetSelfSamplesCount())));
+  #endif
+
+  Local<Object> call_frame = Nan::New<Object>();
+  Nan::Set(call_frame, Nan::New<String>("functionName").ToLocalChecked(), node->GetFunctionName());
+  #if (NODE_MODULE_VERSION > 0x000B)
+  Nan::Set(call_frame, Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->GetScriptId()));
+  Nan::Set(call_frame, Nan::New<String>("bailoutReason").ToLocalChecked(), Nan::New<String>(node->GetBailoutReason()).ToLocalChecked());
+  #else
+  //TODO(3y3): Nan::Set(call_frame, Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->GetScriptId()));
+  Nan::Set(call_frame, Nan::New<String>("bailoutReason").ToLocalChecked(), Nan::New<String>("no reason").ToLocalChecked());
+  #endif
+  #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION < 8)
+  Nan::Set(call_frame, Nan::New<String>("callUID").ToLocalChecked(), Nan::New<Number>(node->GetCallUid()));
+  #endif
+  Nan::Set(call_frame, Nan::New<String>("url").ToLocalChecked(), node->GetScriptResourceName());
+  Nan::Set(call_frame, Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->GetLineNumber()));
+  Nan::Set(call_frame, Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->GetColumnNumber()));
+  #if (NODE_MODULE_VERSION >= 42)
+  Local<Value> lineTicks = GetLineTicks_(node);
+  if (!lineTicks->IsNull()) {
+    Nan::Set(call_frame, Nan::New<String>("lineTicks").ToLocalChecked(), lineTicks);
+  }
+  #endif
+
+  Nan::Set(profile_node, Nan::New<String>("callFrame").ToLocalChecked(), call_frame);
+  Nan::Set(profile_node, Nan::New<String>("children").ToLocalChecked(), children);
+
+  // set node
+  Nan::Set(nodes, *idx, profile_node);
+  (*idx)++;
+
+  for (int32_t index = 0; index < count; index++) {
+    setNodes_(node->GetChild(index), nodes, idx);
+  }
+}
+
+Local<Value> ProfileNode::New (const CpuProfileNode* node, uint32_t type) {
+  Nan::EscapableHandleScope scope;
+
+  if(type == 1) {
+    // get length
+    int count = 0;
+    getTotalCount_(node, &count);
+
+    // set nodes
+    Local<Array> nodes = Nan::New<Array>(count);
+    int idx = 0;
+    setNodes_(node, nodes, &idx);
+
+    return scope.Escape(nodes);
+  }
+
+  // default
   int32_t count = node->GetChildrenCount();
   Local<Object> profile_node = Nan::New<Object>();
   Local<Array> children = Nan::New<Array>(count);
-
   for (int32_t index = 0; index < count; index++) {
-    Nan::Set(children, index, ProfileNode::New(node->GetChild(index)));
+    Nan::Set(children, index, ProfileNode::New(node->GetChild(index), type));
   }
-
   Nan::Set(profile_node, Nan::New<String>("functionName").ToLocalChecked(), node->GetFunctionName());
   Nan::Set(profile_node, Nan::New<String>("url").ToLocalChecked(), node->GetScriptResourceName());
   Nan::Set(profile_node, Nan::New<String>("lineNumber").ToLocalChecked(), Nan::New<Integer>(node->GetLineNumber()));
   Nan::Set(profile_node, Nan::New<String>("columnNumber").ToLocalChecked(), Nan::New<Integer>(node->GetColumnNumber()));
-#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION < 8)
+  #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION < 8)
   Nan::Set(profile_node, Nan::New<String>("callUID").ToLocalChecked(), Nan::New<Number>(node->GetCallUid()));
-#endif
-#if (NODE_MODULE_VERSION > 0x000B)
+  #endif
+  #if (NODE_MODULE_VERSION > 0x000B)
   Nan::Set(profile_node, Nan::New<String>("bailoutReason").ToLocalChecked(), Nan::New<String>(node->GetBailoutReason()).ToLocalChecked());
   Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(), Nan::New<Integer>(node->GetNodeId()));
   Nan::Set(profile_node, Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->GetScriptId()));
   Nan::Set(profile_node, Nan::New<String>("hitCount").ToLocalChecked(), Nan::New<Integer>(node->GetHitCount()));
-#else
+  #else
   Nan::Set(profile_node, Nan::New<String>("bailoutReason").ToLocalChecked(), Nan::New<String>("no reason").ToLocalChecked());
   Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(), Nan::New<Integer>(UIDCounter++));
   Nan::Set(profile_node, Nan::New<String>("hitCount").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(node->GetSelfSamplesCount())));
   //TODO(3y3): Nan::Set(profile_node, Nan::New<String>("scriptId").ToLocalChecked(), Nan::New<Integer>(node->GetScriptId()));
-#endif
+  #endif
   Nan::Set(profile_node, Nan::New<String>("children").ToLocalChecked(), children);
-
-#if (NODE_MODULE_VERSION >= 42)
+  #if (NODE_MODULE_VERSION >= 42)
   Local<Value> lineTicks = GetLineTicks_(node);
   if (!lineTicks->IsNull()) {
     Nan::Set(profile_node, Nan::New<String>("lineTicks").ToLocalChecked(), lineTicks);
   }
-#endif
-
+  #endif
   return scope.Escape(profile_node);
 }
 

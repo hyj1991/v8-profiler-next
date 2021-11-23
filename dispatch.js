@@ -228,7 +228,7 @@ let profiler = {
         }
 
         recsamples = recsamples === undefined ? true : Boolean(recsamples);
-        name = '' + name;
+        name = name && '' + name || '';
 
         if (activeProfiles.indexOf(name) < 0)
             activeProfiles.push(name)
@@ -237,12 +237,21 @@ let profiler = {
         binding.cpu.startProfiling(name, recsamples);
     },
 
-    stopProfiling: function (name) {
+    stopProfiling: function (name, config = { type: 0 }) {
+        const types = [0, 1];
+
+        if (typeof name === 'object') {
+            config = name;
+            name = '';
+        }
+
+        const type = types.includes(config.type) ? config.type : 0;
+
         let index = activeProfiles.indexOf(name);
         if (name && index < 0)
             return;
 
-        let profile = binding.cpu.stopProfiling(name);
+        let profile = binding.cpu.stopProfiling(name, type);
         endTime = Date.now();
         profile.__proto__ = CpuProfile.prototype;
         if (!profile.startTime) profile.startTime = startTime;

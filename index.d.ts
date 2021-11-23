@@ -12,7 +12,11 @@ export function startProfiling(name?: string, recsamples?: boolean): void;
  * Stops the profiler for a specific profile.
  * @param name Name of the profile. "undefined" if not defined.
  */
-export function stopProfiling(name?: string): CpuProfile;
+export interface ProfilingConfig {
+  type: 0 | 1
+}
+export function stopProfiling(config?: ProfilingConfig): CpuProfile;
+export function stopProfiling(name?: string, config?: ProfilingConfig): CpuProfile;
 export function deleteAllProfiles(): void;
 export function getObjectByHeapObjectId(id: number): Object;
 export function deleteAllSnapshots(): void;
@@ -70,7 +74,7 @@ type DataReceiver = (
   result: string | undefined
 ) => void;
 
-export class ExportStream extends Stream.Transform {}
+export class ExportStream extends Stream.Transform { }
 
 export class Snapshot extends Profile {
   getHeader(): Header;

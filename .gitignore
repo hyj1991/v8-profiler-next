@@ -11,3 +11,4 @@ tmp
 *.heapsnapshot
 *.cpuprofile
 *.heapprofile
+demo.js

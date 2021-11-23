@@ -72,7 +72,7 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   profile = v8::CpuProfiler::StopProfiling(title);
 #endif
 
-  Local<Object> result = Profile::New(profile);
+  Local<Object> result = Profile::New(profile, Nan::To<uint32_t>(info[1]).ToChecked());
   info.GetReturnValue().Set(result);
 
 #if (NODE_MODULE_VERSION > 0x0039)
