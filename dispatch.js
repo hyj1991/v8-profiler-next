@@ -218,6 +218,15 @@ let profiler = {
 
     get profiles() { return binding.cpu.profiles; },
 
+    setGenerateType: function (type) {
+        const types = [0, 1];
+        if (types.includes(type)) {
+            binding.cpu.setGenerateType(type);
+        } else {
+            console.error(`type should in [${types.join(', ')}], got ${type}.`);
+        }
+    },
+
     startProfiling: function (name, recsamples) {
         if (activeProfiles.length == 0 && typeof process._startProfilerIdleNotifier == "function")
             process._startProfilerIdleNotifier();
@@ -237,21 +246,12 @@ let profiler = {
         binding.cpu.startProfiling(name, recsamples);
     },
 
-    stopProfiling: function (name, config = { type: 0 }) {
-        const types = [0, 1];
-
-        if (typeof name === 'object') {
-            config = name;
-            name = '';
-        }
-
-        const type = types.includes(config.type) ? config.type : 0;
-
+    stopProfiling: function (name) {
         let index = activeProfiles.indexOf(name);
         if (name && index < 0)
             return;
 
-        let profile = binding.cpu.stopProfiling(name, type);
+        let profile = binding.cpu.stopProfiling(name);
         endTime = Date.now();
         profile.__proto__ = CpuProfile.prototype;
         if (!profile.startTime) profile.startTime = startTime;

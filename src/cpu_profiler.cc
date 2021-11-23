@@ -17,6 +17,8 @@ v8::CpuProfiler* m_profiler = nullptr;
 uint32_t samplingInterval = 0;
 #endif
 
+int generateType = 0;
+
 void CpuProfiler::Initialize (Local<Object> target) {
   Nan::HandleScope scope;
 
@@ -26,10 +28,15 @@ void CpuProfiler::Initialize (Local<Object> target) {
   Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
   Nan::SetMethod(cpuProfiler, "setSamplingInterval", CpuProfiler::SetSamplingInterval);
+  Nan::SetMethod(cpuProfiler, "setGenerateType", CpuProfiler::SetGenerateType);
   Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(), profiles);
 
   Profile::profiles.Reset(profiles);
   Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
+}
+
+NAN_METHOD(CpuProfiler::SetGenerateType) {
+  generateType = Nan::To<uint32_t>(info[0]).ToChecked();
 }
 
 NAN_METHOD(CpuProfiler::StartProfiling) {
@@ -72,7 +79,7 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   profile = v8::CpuProfiler::StopProfiling(title);
 #endif
 
-  Local<Object> result = Profile::New(profile, Nan::To<uint32_t>(info[1]).ToChecked());
+  Local<Object> result = Profile::New(profile, generateType);
   info.GetReturnValue().Set(result);
 
 #if (NODE_MODULE_VERSION > 0x0039)
