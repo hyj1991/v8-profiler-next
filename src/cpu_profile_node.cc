@@ -39,17 +39,7 @@ Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
 }
 #endif
 
-void ProfileNode::getTotalCount_(const CpuProfileNode* node, int* total) {
-  (*total)++;
-  int32_t count = node->GetChildrenCount();
-  for (int32_t index = 0; index < count; index++) {
-    getTotalCount_(node->GetChild(index), total);
-  }
-}
-
-void ProfileNode::setNodes_(const CpuProfileNode* node, Local<Array> nodes, int* idx) {
-  Nan::EscapableHandleScope scope;
-
+void ProfileNode::setNodes_(const v8::CpuProfileNode* node, std::vector<Local<Object> >& list, const Nan::EscapableHandleScope& scope) {
   Local<Object> profile_node = Nan::New<Object>();
   int32_t count = node->GetChildrenCount();
   Local<Array> children = Nan::New<Array>(count);
@@ -90,11 +80,10 @@ void ProfileNode::setNodes_(const CpuProfileNode* node, Local<Array> nodes, int*
   Nan::Set(profile_node, Nan::New<String>("children").ToLocalChecked(), children);
 
   // set node
-  Nan::Set(nodes, *idx, profile_node);
-  (*idx)++;
+  list.push_back(profile_node);
 
   for (int32_t index = 0; index < count; index++) {
-    setNodes_(node->GetChild(index), nodes, idx);
+    setNodes_(node->GetChild(index), list, scope);
   }
 }
 
@@ -102,14 +91,14 @@ Local<Value> ProfileNode::New (const CpuProfileNode* node, uint32_t type) {
   Nan::EscapableHandleScope scope;
 
   if(type == 1) {
-    // get length
-    int count = 0;
-    getTotalCount_(node, &count);
+    std::vector<Local<Object> > list;
+    setNodes_(node, list, scope);
 
-    // set nodes
-    Local<Array> nodes = Nan::New<Array>(count);
-    int idx = 0;
-    setNodes_(node, nodes, &idx);
+    int size = list.size();
+    Local<Array> nodes = Nan::New<Array>(size);
+    for(int idx=0; idx<size; idx++) {
+      Nan::Set(nodes, idx, list[idx]);
+    }
 
     return scope.Escape(nodes);
   }
