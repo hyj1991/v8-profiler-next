@@ -97,7 +97,7 @@ NAN_METHOD(Snapshot::Delete) {
 
   Local<String> __uid = Nan::New<String>("uid").ToLocalChecked();
   Local<Integer> _uid = Nan::To<Integer>(Nan::Get(info.Holder(), __uid).ToLocalChecked()).ToLocalChecked();
-  Nan::Delete(snapshots, _uid->Value());
+  Nan::Delete(snapshots, static_cast<int>(_uid->Value()));
 
   static_cast<HeapSnapshot*>(ptr)->Delete();
   info.GetReturnValue().Set(snapshots);

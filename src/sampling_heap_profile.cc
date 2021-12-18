@@ -39,8 +39,8 @@ Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
   Nan::Set(js_node, Nan::New<String>("selfSize").ToLocalChecked(), Nan::New<Integer>(selfSize));
 
   // add children
-  Local<Array> children = Nan::New<Array>(node->children.size());
-  for (size_t i = 0; i < node->children.size(); i++) {
+  Local<Array> children = Nan::New<Array>(static_cast<int>(node->children.size()));
+  for (uint32_t i = 0; i < node->children.size(); i++) {
     Nan::Set(children, i, TranslateAllocationProfile(node->children[i]));
   }
   Nan::Set(js_node, Nan::New<String>("children").ToLocalChecked(), children);
@@ -70,7 +70,7 @@ NAN_METHOD(SamplingHeapProfile::StartSamplingHeapProfiling) {
       return Nan::ThrowTypeError("first argument type must be number");
     }
     uint64_t sample_interval = Nan::To<uint32_t>(info[0]).ToChecked();
-    int stack_depth = Nan::To<Integer>(info[1]).ToLocalChecked()->Value();
+    int stack_depth = static_cast<int>(Nan::To<Integer>(info[1]).ToLocalChecked()->Value());
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler(sample_interval, stack_depth);
   } else {
     v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler();
