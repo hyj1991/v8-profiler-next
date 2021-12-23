@@ -4,7 +4,8 @@
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
-    "test": "mocha test/*.test.js --timeout 10000"
+    "test": "mocha test/*.test.js --timeout 10000",
+    "build": "node-gyp rebuild"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,7 @@
     "README.md"
   ],
   "dependencies": {
-    "nan": "^2.14.1"
+    "nan": "^2.15.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",

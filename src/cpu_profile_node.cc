@@ -94,9 +94,9 @@ Local<Value> ProfileNode::New (const CpuProfileNode* node, uint32_t type) {
     std::vector<Local<Object> > list;
     setNodes_(node, list, scope);
 
-    int size = list.size();
+    uint32_t size = static_cast<uint32_t>(list.size());
     Local<Array> nodes = Nan::New<Array>(size);
-    for(int idx=0; idx<size; idx++) {
+    for(uint32_t idx = 0; idx < size; idx++) {
       Nan::Set(nodes, idx, list[idx]);
     }
 
