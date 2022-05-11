@@ -5,6 +5,7 @@
   "main": "dispatch.js",
   "scripts": {
     "test": "mocha test/*.test.js --timeout 10000",
+    "test-single": "mocha --timeout 10000",
     "build": "node-gyp rebuild"
   },
   "repository": {
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/hyj1991/v8-profiler-next#readme",
   "files": [
     "src",
+    "lib",
     "binding.gyp",
     "dispatch.js",
     "index.d.ts",
