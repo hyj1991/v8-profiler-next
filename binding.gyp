@@ -13,7 +13,8 @@
         'src/heap_output_stream.cc',
         'src/heap_graph_node.cc',
         'src/heap_graph_edge.cc',
-        'src/sampling_heap_profile.cc'
+        'src/sampling_heap_profile.cc',
+        'src/environment_data.cc'
       ],
       'include_dirs' : [
         "<!(node -e \"require('nan')\")"
