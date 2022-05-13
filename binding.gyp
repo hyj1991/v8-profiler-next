@@ -17,6 +17,7 @@
         'src/environment_data.cc'
       ],
       'include_dirs' : [
+        "src",
         "<!(node -e \"require('nan')\")"
       ],
       'conditions':[

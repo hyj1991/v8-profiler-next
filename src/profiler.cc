@@ -20,5 +20,5 @@ void InitializeProfiler(v8::Local<v8::Object> target) {
   SamplingHeapProfile::Initialize(target);
 }
 
-NODE_MODULE(profiler, InitializeProfiler)
+NODE_MODULE_CONTEXT_AWARE(profiler, InitializeProfiler)
 }  // namespace nodex

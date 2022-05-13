@@ -13,6 +13,12 @@ EnvironmentData* EnvironmentData::GetCurrent(v8::Isolate* isolate) {
   return per_thread::environment_data;
 }
 
+// static
+EnvironmentData* EnvironmentData::GetCurrent(
+    const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  return EnvironmentData::GetCurrent(info.GetIsolate());
+}
+
 EnvironmentData::EnvironmentData(v8::Isolate* isolate) : isolate_(isolate) {
   per_thread::environment_data = this;
 }
