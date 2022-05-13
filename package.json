@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha test/*.test.js --timeout 10000",
     "test-single": "mocha --timeout 10000",
-    "build": "node-gyp rebuild"
+    "build": "node-gyp rebuild",
+    "format":"clang-format -i --glob=\"src/**/*[.h|.cc]\""
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "clang-format": "^1.8.0",
     "mocha": "^5.2.0"
   }
 }

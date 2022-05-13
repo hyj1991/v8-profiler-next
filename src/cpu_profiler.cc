@@ -1,15 +1,16 @@
 #include "cpu_profiler.h"
+
 #include "cpu_profile.h"
 
 namespace nodex {
+using v8::Array;
 using v8::CpuProfile;
 using v8::Local;
 using v8::Object;
-using v8::Array;
 using v8::String;
 
-CpuProfiler::CpuProfiler () {}
-CpuProfiler::~CpuProfiler () {}
+CpuProfiler::CpuProfiler() {}
+CpuProfiler::~CpuProfiler() {}
 
 #if (NODE_MODULE_VERSION > 0x0039)
 int m_startedProfilesCount = 0;
@@ -19,7 +20,7 @@ uint32_t samplingInterval = 0;
 
 int generateType = 0;
 
-void CpuProfiler::Initialize (Local<Object> target) {
+void CpuProfiler::Initialize(Local<Object> target) {
   Nan::HandleScope scope;
 
   Local<Object> cpuProfiler = Nan::New<Object>();
@@ -27,9 +28,11 @@ void CpuProfiler::Initialize (Local<Object> target) {
 
   Nan::SetMethod(cpuProfiler, "startProfiling", CpuProfiler::StartProfiling);
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
-  Nan::SetMethod(cpuProfiler, "setSamplingInterval", CpuProfiler::SetSamplingInterval);
+  Nan::SetMethod(cpuProfiler, "setSamplingInterval",
+                 CpuProfiler::SetSamplingInterval);
   Nan::SetMethod(cpuProfiler, "setGenerateType", CpuProfiler::SetGenerateType);
-  Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(), profiles);
+  Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(),
+           profiles);
 
   Profile::profiles.Reset(profiles);
   Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
@@ -45,16 +48,17 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
 #if (NODE_MODULE_VERSION > 0x0039)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
   if (!m_startedProfilesCount) {
-      m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+    m_profiler = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
   }
   ++m_startedProfilesCount;
-  if (samplingInterval){
-      m_profiler->SetSamplingInterval(samplingInterval);
+  if (samplingInterval) {
+    m_profiler->SetSamplingInterval(samplingInterval);
   }
   m_profiler->StartProfiling(title, recsamples);
 #elif (NODE_MODULE_VERSION > 0x000B)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
-  v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, recsamples);
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title,
+                                                              recsamples);
 #else
   v8::CpuProfiler::StartProfiling(title);
 #endif
@@ -96,7 +100,8 @@ NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 #if (NODE_MODULE_VERSION > 0x0039)
   samplingInterval = Nan::To<uint32_t>(info[0]).ToChecked();
 #elif (NODE_MODULE_VERSION > 0x000B)
-  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(Nan::To<uint32_t>(info[0]).ToChecked());
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(
+      Nan::To<uint32_t>(info[0]).ToChecked());
 #endif
 }
-} //namespace nodex
+}  // namespace nodex

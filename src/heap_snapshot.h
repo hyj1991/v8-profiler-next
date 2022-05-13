@@ -1,16 +1,17 @@
 #ifndef NODE_SNAPSHOT_
 #define NODE_SNAPSHOT_
 
-#include "v8-profiler.h"
 #include "nan.h"
+#include "v8-profiler.h"
 
 namespace nodex {
 
 class Snapshot {
-public:
+ public:
   static v8::Local<v8::Value> New(const v8::HeapSnapshot* node);
   static Nan::Persistent<v8::Object> snapshots;
-private:
+
+ private:
   static void Initialize();
   static NAN_GETTER(GetRoot);
   static NAN_METHOD(GetNode);
@@ -19,5 +20,5 @@ private:
   static NAN_METHOD(Serialize);
   static Nan::Persistent<v8::ObjectTemplate> snapshot_template_;
 };
-} //namespace nodex
+}  // namespace nodex
 #endif  // NODE_SNAPSHOT_

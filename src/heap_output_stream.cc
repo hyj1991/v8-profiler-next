@@ -1,14 +1,15 @@
 #include "heap_output_stream.h"
 
 namespace nodex {
+using Nan::TryCatch;
 using v8::Array;
+using v8::Function;
 using v8::HeapStatsUpdate;
 using v8::Local;
-using v8::Value;
-using v8::String;
 using v8::OutputStream;
-using v8::Function;
-using Nan::TryCatch;;
+using v8::String;
+using v8::Value;
+;
 using v8::Integer;
 
 void OutputStreamAdapter::EndOfStream() {
@@ -21,20 +22,18 @@ void OutputStreamAdapter::EndOfStream() {
   }
 }
 
-int OutputStreamAdapter::GetChunkSize() {
-  return 51200;
-}
+int OutputStreamAdapter::GetChunkSize() { return 51200; }
 
-OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data, int size) {
+OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data,
+                                                               int size) {
   Nan::HandleScope scope;
 
-  Local<Value> argv[2] = {
-    Nan::New<String>(data, size).ToLocalChecked(),
-    Nan::New<Integer>(size)
-  };
+  Local<Value> argv[2] = {Nan::New<String>(data, size).ToLocalChecked(),
+                          Nan::New<Integer>(size)};
 
   TryCatch try_catch;
-  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 2, argv)).ToLocalChecked();
+  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 2, argv))
+              .ToLocalChecked();
 
   if (try_catch.HasCaught()) {
     Nan::ThrowError(try_catch.Exception());
@@ -44,7 +43,8 @@ OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data, int s
   return abort->IsFalse() ? kAbort : kContinue;
 }
 
-OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(HeapStatsUpdate* data, int count) {
+OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(
+    HeapStatsUpdate* data, int count) {
   Nan::HandleScope scope;
 
   Local<Array> samples = Nan::New<Array>();
@@ -58,7 +58,8 @@ OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(HeapStatsUpda
   Local<Value> argv[1] = {samples};
 
   TryCatch try_catch;
-  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 1, argv)).ToLocalChecked();
+  abort = (Nan::Call(iterator, Nan::GetCurrentContext()->Global(), 1, argv))
+              .ToLocalChecked();
 
   if (try_catch.HasCaught()) {
     Nan::ThrowError(try_catch.Exception());
@@ -67,4 +68,4 @@ OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(HeapStatsUpda
 
   return abort->IsFalse() ? kAbort : kContinue;
 }
-} //namespace nodex
+}  // namespace nodex

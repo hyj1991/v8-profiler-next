@@ -1,8 +1,10 @@
 #include "heap_profiler.h"
-#include "heap_snapshot.h"
+
 #include "heap_output_stream.h"
+#include "heap_snapshot.h"
 
 namespace nodex {
+using Nan::TryCatch;
 using v8::ActivityControl;
 using v8::Array;
 using v8::Function;
@@ -12,27 +14,23 @@ using v8::Local;
 using v8::Object;
 using v8::SnapshotObjectId;
 using v8::String;
-using Nan::TryCatch;
 using v8::Value;
 
 HeapProfiler::HeapProfiler() {}
 HeapProfiler::~HeapProfiler() {}
 
 class ActivityControlAdapter : public ActivityControl {
-public:
+ public:
   ActivityControlAdapter(Local<Value> progress)
-    : reportProgress(Local<Function>::Cast(progress)),
-      abort(Nan::False())
-  {}
+      : reportProgress(Local<Function>::Cast(progress)), abort(Nan::False()) {}
 
   ControlOption ReportProgressValue(int done, int total) {
-    Local<Value> argv[2] = {
-      Nan::New<Integer>(done),
-      Nan::New<Integer>(total)
-    };
+    Local<Value> argv[2] = {Nan::New<Integer>(done), Nan::New<Integer>(total)};
 
     TryCatch try_catch;
-    abort = (Nan::Call(reportProgress, Nan::GetCurrentContext()->Global(), 2, argv)).ToLocalChecked();
+    abort =
+        (Nan::Call(reportProgress, Nan::GetCurrentContext()->Global(), 2, argv))
+            .ToLocalChecked();
 
     if (try_catch.HasCaught()) {
       Nan::ThrowError(try_catch.Exception());
@@ -42,24 +40,29 @@ public:
     return abort->IsFalse() ? kAbort : kContinue;
   }
 
-private:
+ private:
   Local<Function> reportProgress;
   Local<Value> abort;
 };
 
-void HeapProfiler::Initialize (Local<Object> target) {
+void HeapProfiler::Initialize(Local<Object> target) {
   Nan::HandleScope scope;
 
   Local<Object> heapProfiler = Nan::New<Object>();
   Local<Object> snapshots = Nan::New<Object>();
 
   Nan::SetMethod(heapProfiler, "takeSnapshot", HeapProfiler::TakeSnapshot);
-  Nan::SetMethod(heapProfiler, "startTrackingHeapObjects", HeapProfiler::StartTrackingHeapObjects);
-  Nan::SetMethod(heapProfiler, "stopTrackingHeapObjects", HeapProfiler::StopTrackingHeapObjects);
+  Nan::SetMethod(heapProfiler, "startTrackingHeapObjects",
+                 HeapProfiler::StartTrackingHeapObjects);
+  Nan::SetMethod(heapProfiler, "stopTrackingHeapObjects",
+                 HeapProfiler::StopTrackingHeapObjects);
   Nan::SetMethod(heapProfiler, "getHeapStats", HeapProfiler::GetHeapStats);
-  Nan::SetMethod(heapProfiler, "getObjectByHeapObjectId", HeapProfiler::GetObjectByHeapObjectId);
-  Nan::SetMethod(heapProfiler, "getHeapObjectId", HeapProfiler::GetHeapObjectId);
-  Nan::Set(heapProfiler, Nan::New<String>("snapshots").ToLocalChecked(), snapshots);
+  Nan::SetMethod(heapProfiler, "getObjectByHeapObjectId",
+                 HeapProfiler::GetObjectByHeapObjectId);
+  Nan::SetMethod(heapProfiler, "getHeapObjectId",
+                 HeapProfiler::GetHeapObjectId);
+  Nan::Set(heapProfiler, Nan::New<String>("snapshots").ToLocalChecked(),
+           snapshots);
 
   Snapshot::snapshots.Reset(snapshots);
   Nan::Set(target, Nan::New<String>("heap").ToLocalChecked(), heapProfiler);
@@ -74,13 +77,18 @@ NAN_METHOD(HeapProfiler::TakeSnapshot) {
 #endif
 
 #if (NODE_MODULE_VERSION > 0x0038)
-  const HeapSnapshot* snapshot = v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot();
+  const HeapSnapshot* snapshot =
+      v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot();
 #elif (NODE_MODULE_VERSION > 0x002C)
-  const HeapSnapshot* snapshot = v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot(control);
+  const HeapSnapshot* snapshot =
+      v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot(control);
 #elif (NODE_MODULE_VERSION > 0x000B)
-  const HeapSnapshot* snapshot = v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot(title, control);
+  const HeapSnapshot* snapshot =
+      v8::Isolate::GetCurrent()->GetHeapProfiler()->TakeHeapSnapshot(title,
+                                                                     control);
 #else
-  const HeapSnapshot* snapshot = v8::HeapProfiler::TakeSnapshot(title, HeapSnapshot::kFull, control);
+  const HeapSnapshot* snapshot =
+      v8::HeapProfiler::TakeSnapshot(title, HeapSnapshot::kFull, control);
 #endif
 
   info.GetReturnValue().Set(Snapshot::New(snapshot));
@@ -115,7 +123,8 @@ NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
 #if (NODE_MODULE_VERSION > 0x000B)
   object = v8::Isolate::GetCurrent()->GetHeapProfiler()->FindObjectById(id);
 #else
-  Local<Object> snapshots = Local<Object>::Cast(info.This()->Get(Nan::New<String>("snapshots").ToLocalChecked()));
+  Local<Object> snapshots = Local<Object>::Cast(
+      info.This()->Get(Nan::New<String>("snapshots").ToLocalChecked()));
   Local<Object> snapshot;
 
   Local<Array> names = Nan::GetOwnPropertyNames(snapshots).ToLocalChecked();
@@ -126,13 +135,21 @@ NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
     Local<Value> name = Nan::Get(names, i).ToLocalChecked();
     uint32_t uid = Nan::To<Integer>(name).ToLocalChecked()->Value();
     if (uid >= id) {
-      snapshot = Nan::To<Object>(Nan::Get(snapshots, uid).ToLocalChecked()).ToLocalChecked();
+      snapshot = Nan::To<Object>(Nan::Get(snapshots, uid).ToLocalChecked())
+                     .ToLocalChecked();
 
-      Local<Value> argv[] = { info[0] };
-      Local<Object> graph_node = Nan::To<Object>(Function::Cast(*snapshot->Get(Nan::New<String>("getNodeById").ToLocalChecked()))
-                                 ->Call(snapshot, 1, argv)).ToLocalChecked();
-      object = Function::Cast(*graph_node->Get(Nan::New<String>("getHeapValue").ToLocalChecked()))
-               ->Call(graph_node, 0, NULL);
+      Local<Value> argv[] = {info[0]};
+      Local<Object> graph_node =
+          Nan::To<Object>(
+              Function::Cast(
+                  *snapshot->Get(
+                      Nan::New<String>("getNodeById").ToLocalChecked()))
+                  ->Call(snapshot, 1, argv))
+              .ToLocalChecked();
+      object =
+          Function::Cast(*graph_node->Get(
+                             Nan::New<String>("getHeapValue").ToLocalChecked()))
+              ->Call(graph_node, 0, NULL);
       break;
     }
   }
@@ -140,16 +157,15 @@ NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
 
   if (object.IsEmpty()) {
     return;
-  } else if (object->IsObject()
-             || object->IsNumber()
-             || object->IsString()
+  } else if (object->IsObject() || object->IsNumber() || object->IsString()
 #if (NODE_MODULE_VERSION > 0x000B)
              || object->IsSymbol()
 #endif
              || object->IsBoolean()) {
     info.GetReturnValue().Set(object);
   } else {
-    info.GetReturnValue().Set(Nan::New<String>("Preview is not available").ToLocalChecked());
+    info.GetReturnValue().Set(
+        Nan::New<String>("Preview is not available").ToLocalChecked());
   }
 }
 
@@ -167,10 +183,11 @@ NAN_METHOD(HeapProfiler::GetHeapStats) {
 
   OutputStreamAdapter* stream = new OutputStreamAdapter(iterator, callback);
 #if (NODE_MODULE_VERSION > 0x000B)
-  SnapshotObjectId ID = v8::Isolate::GetCurrent()->GetHeapProfiler()->GetHeapStats(stream);
+  SnapshotObjectId ID =
+      v8::Isolate::GetCurrent()->GetHeapProfiler()->GetHeapStats(stream);
 #else
   SnapshotObjectId ID = v8::HeapProfiler::PushHeapObjectsStats(stream);
 #endif
   info.GetReturnValue().Set(Nan::New<Integer>(ID));
 }
-} //namespace nodex
+}  // namespace nodex
