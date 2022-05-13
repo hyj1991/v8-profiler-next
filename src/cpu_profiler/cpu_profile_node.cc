@@ -10,11 +10,9 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-uint32_t ProfileNode::UIDCounter = 1;
-
 #if (NODE_MODULE_VERSION >= 42)
 Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
-  Nan::EscapableHandleScope scope;
+  EscapableHandleScope scope(this->isolate());
 
   uint32_t count = node->GetHitLineCount();
   v8::CpuProfileNode::LineTick* entries =
@@ -44,7 +42,7 @@ Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
 
 void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
                             std::vector<Local<Object> >& list,
-                            const Nan::EscapableHandleScope& scope) {
+                            const EscapableHandleScope& scope) {
   Local<Object> profile_node = Nan::New<Object>();
   int32_t count = node->GetChildrenCount();
   Local<Array> children = Nan::New<Array>(count);
@@ -112,7 +110,7 @@ void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
 }
 
 Local<Value> ProfileNode::New(const CpuProfileNode* node, uint32_t type) {
-  Nan::EscapableHandleScope scope;
+  EscapableHandleScope scope(this->isolate());
 
   if (type == 1) {
     std::vector<Local<Object> > list;

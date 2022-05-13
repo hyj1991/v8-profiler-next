@@ -6,16 +6,22 @@
 
 namespace nodex {
 
+namespace per_thread {
+extern Nan::Persistent<v8::Object> profiles;
+}
+
 class Profile {
  public:
-  static v8::Local<v8::Object> New(const v8::CpuProfile* node, uint32_t type);
-  static Nan::Persistent<v8::Object> profiles;
+  Profile(v8::Isolate* isolate) : isolate_(isolate) {}
+  v8::Local<v8::Object> New(const v8::CpuProfile* node, uint32_t type);
+  v8::Isolate* isolate() { return isolate_; }
 
  private:
   static NAN_METHOD(Delete);
-  static void Initialize();
-  static Nan::Persistent<v8::ObjectTemplate> profile_template_;
-  static uint32_t uid_counter;
+  void Initialize();
+  Nan::Persistent<v8::ObjectTemplate> profile_template_;
+  uint32_t uid_counter = -1;
+  v8::Isolate* isolate_;
 };
 
 }  // namespace nodex

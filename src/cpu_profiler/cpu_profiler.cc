@@ -2,6 +2,7 @@
 
 #include "cpu_profile.h"
 #include "environment_data.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using v8::Array;
@@ -12,7 +13,7 @@ using v8::String;
 
 // class CpuProfiler
 void CpuProfiler::Initialize(Local<Object> target) {
-  Nan::HandleScope scope;
+  HandleScope scope(target->GetIsolate());
 
   Local<Object> cpuProfiler = Nan::New<Object>();
   Local<Array> profiles = Nan::New<Array>();
@@ -25,7 +26,7 @@ void CpuProfiler::Initialize(Local<Object> target) {
   Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(),
            profiles);
 
-  Profile::profiles.Reset(profiles);
+  per_thread::profiles.Reset(profiles);
   Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
 }
 
@@ -77,8 +78,9 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   }
   CpuProfile* profile = env_data->cpu_profiler()->StopProfiling(title);
 
+  Profile format(env_data->isolate());
   Local<Object> result =
-      Profile::New(profile, env_data->cpu_profiler()->generate_type());
+      format.New(profile, env_data->cpu_profiler()->generate_type());
   info.GetReturnValue().Set(result);
 }
 
