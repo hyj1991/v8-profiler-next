@@ -1,10 +1,29 @@
 'use strict';
 
-const { canIUseWorkerThreads } = require('../lib/worker_threads');
+const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
+const { canIUseWorkerThreads } = require('../lib/worker_threads');
 const workerFile = path.join(__dirname, 'fixtures/worker.js');
 const assert = require('assert');
+
+const profile = {
+  cpuprofile: {
+    main: path.join(__dirname, 'fixtures/main.cpuprofile'),
+    worker_threads: path.join(__dirname, 'fixtures/worker_threads.cpuprofile'),
+  }
+};
+
+function cleanFile(file) {
+  if (fs.existsSync(file)) {
+    fs.unlinkSync(file);
+  }
+}
+
+function cleanProfile() {
+  cleanFile(profile.cpuprofile.main);
+  cleanFile(profile.cpuprofile.worker_threads);
+}
 
 function fork(filepath, options = {}) {
   const proc = cp.fork(filepath, Object.assign({
@@ -21,11 +40,9 @@ function getOutput(proc) {
     let stderr = '';
     proc.stdout.on('data', chunk => {
       stdout += chunk;
-      console.log('child:', chunk);
     });
     proc.stderr.on('data', chunk => {
       stderr += chunk;
-      console.error('child:', chunk);
     });
 
     proc.on('exit', (code, signal) => {
@@ -34,8 +51,8 @@ function getOutput(proc) {
         console.log('stdout:\n', stdout);
         console.log('');
         console.log('stderr:\n', stderr);
-        resolve({ stderr, stdout });
       }
+      resolve({ code, signal, stdout, stderr });
     });
   });
 }
@@ -46,14 +63,34 @@ function getOutput(proc) {
   describe('cpu profiling', function () {
     let output;
     before(async function () {
+      cleanProfile();
+
       const proc = fork(workerFile);
       output = await getOutput(proc);
     });
 
-    it('output should have content', function () {
-      console.log(12333, output);
-      assert(output.stdout);
+    after(async function () {
+      cleanProfile();
+    });
+
+    it('worker.js exit succeed', function () {
+      console.log(`worker.js exit info: ${JSON.stringify(output)}`);
+      assert(output.code === 0);
+      assert(output.signal === null);
+    });
+
+    it('worker_threads should exit succeed', function () {
       assert(!output.stderr);
-    })
+      const { code: workerExitCode } = JSON.parse(output.stdout);
+      assert(workerExitCode === 0);
+    });
+
+    it('main create cpuprofile succeed', function () {
+      assert(fs.existsSync(profile.cpuprofile.main));
+    });
+
+    it('worker_threads create cpuprofile succeed', function () {
+      assert(fs.existsSync(profile.cpuprofile.worker_threads));
+    });
   });
 });

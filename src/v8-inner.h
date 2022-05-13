@@ -9,49 +9,48 @@ namespace nodex {
  * its implicit v8::Isolate::GetCurrent.
  */
 class HandleScope {
-  v8::HandleScope scope_;
+  v8::HandleScope scope;
 
  public:
-  inline HandleScope(v8::Isolate* isolate) : scope_(isolate) {}
+#if NODE_MODULE_VERSION > NODE_0_10_MODULE_VERSION
+  inline HandleScope(v8::Isolate* isolate) : scope(isolate) {}
   inline static int NumberOfHandles(v8::Isolate* isolate) {
     return v8::HandleScope::NumberOfHandles(isolate);
   }
+#else
+  inline HandleScope() : scope() {}
+  inline static int NumberOfHandles() {
+    return v8::HandleScope::NumberOfHandles();
+  }
+#endif
 
  private:
   // Make it hard to create heap-allocated or illegal handle scopes by
   // disallowing certain operations.
-  HandleScope(const HandleScope&) = delete;
-  void operator=(const HandleScope&) = delete;
-  void* operator new(size_t size) = delete;
-  void operator delete(void*, size_t) = delete;
+  HandleScope(const HandleScope&);
+  void operator=(const HandleScope&);
+  void* operator new(size_t size);
+  void operator delete(void*, size_t) { abort(); }
 };
-
-inline v8::Isolate* TryGetCurrentIsolate() {
-#if NODE_MODULE_VERSION >= NODE_16_0_MODULE_VERSION
-  return v8::Isolate::TryGetCurrent();
-#else
-  return v8::Isolate::GetCurrent();
-#endif
-}
 
 class EscapableHandleScope {
  public:
 #if NODE_MODULE_VERSION > NODE_0_10_MODULE_VERSION
-  inline EscapableHandleScope(v8::Isolate* isolate) : scope_(isolate) {}
+  inline EscapableHandleScope(v8::Isolate* isolate) : scope(isolate) {}
 
-  inline static int NumberOfHandles() {
-    return v8::EscapableHandleScope::NumberOfHandles(v8::Isolate::GetCurrent());
+  inline static int NumberOfHandles(v8::Isolate* isolate) {
+    return v8::EscapableHandleScope::NumberOfHandles(isolate);
   }
 
   template <typename T>
   inline v8::Local<T> Escape(v8::Local<T> value) {
-    return scope_.Escape(value);
+    return scope.Escape(value);
   }
 
  private:
-  v8::EscapableHandleScope scope_;
+  v8::EscapableHandleScope scope;
 #else
-  inline EscapableHandleScope() : scope_() {}
+  inline EscapableHandleScope() : scope() {}
 
   inline static int NumberOfHandles() {
     return v8::HandleScope::NumberOfHandles();
@@ -59,11 +58,11 @@ class EscapableHandleScope {
 
   template <typename T>
   inline v8::Local<T> Escape(v8::Local<T> value) {
-    return scope_.Close(value);
+    return scope.Close(value);
   }
 
  private:
-  v8::HandleScope scope_;
+  v8::HandleScope scope;
 #endif
 
  private:

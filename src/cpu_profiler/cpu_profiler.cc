@@ -35,8 +35,12 @@ NAN_METHOD(CpuProfiler::SetGenerateType) {
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
-  env_data->cpu_profiler()->generate_type() =
-      Nan::To<uint32_t>(info[0]).ToChecked();
+
+  {
+    HandleScope scope(env_data->isolate());
+    env_data->cpu_profiler()->generate_type() =
+        Nan::To<uint32_t>(info[0]).ToChecked();
+  }
 }
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
@@ -44,8 +48,12 @@ NAN_METHOD(CpuProfiler::SetSamplingInterval) {
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
-  env_data->cpu_profiler()->SetSamplingInterval(
-      Nan::To<uint32_t>(info[0]).ToChecked());
+
+  {
+    HandleScope scope(env_data->isolate());
+    env_data->cpu_profiler()->SetSamplingInterval(
+        Nan::To<uint32_t>(info[0]).ToChecked());
+  }
 }
 
 NAN_METHOD(CpuProfiler::StartProfiling) {
@@ -53,14 +61,18 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
-  Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
+
+  {
+    HandleScope scope(env_data->isolate());
+    Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
 
 #if (NODE_MODULE_VERSION > 0x000B)
-  bool recsamples = Nan::To<bool>(info[1]).ToChecked();
-  env_data->cpu_profiler()->StartProfiling(title, recsamples);
+    bool recsamples = Nan::To<bool>(info[1]).ToChecked();
+    env_data->cpu_profiler()->StartProfiling(title, recsamples);
 #else
-  env_data->cpu_profiler()->StartProfiling(title);
+    env_data->cpu_profiler()->StartProfiling(title);
 #endif
+  }
 }
 
 NAN_METHOD(CpuProfiler::StopProfiling) {
@@ -68,23 +80,38 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
-  Local<String> title = Nan::EmptyString();
-  if (info.Length()) {
-    if (info[0]->IsString()) {
-      title = Nan::To<String>(info[0]).ToLocalChecked();
-    } else if (!info[0]->IsUndefined()) {
-      return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
-    }
-  }
-  CpuProfile* profile = env_data->cpu_profiler()->StopProfiling(title);
 
-  Profile format(env_data->isolate());
-  Local<Object> result =
-      format.New(profile, env_data->cpu_profiler()->generate_type());
-  info.GetReturnValue().Set(result);
+  {
+    HandleScope scope(env_data->isolate());
+    Local<String> title = Nan::EmptyString();
+    if (info.Length()) {
+      if (info[0]->IsString()) {
+        title = Nan::To<String>(info[0]).ToLocalChecked();
+      } else if (!info[0]->IsUndefined()) {
+        return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
+      }
+    }
+    CpuProfile* profile = env_data->cpu_profiler()->StopProfiling(title);
+    Profile format(env_data->isolate());
+    Local<Object> result =
+        format.New(profile, env_data->cpu_profiler()->generate_type());
+    env_data->cpu_profiler()->CheckProfile(profile);
+    info.GetReturnValue().Set(result);
+  }
 }
 
 // class InnerCpuProfiler
+void InnerCpuProfiler::CheckProfile(v8::CpuProfile* profile) {
+#if (NODE_MODULE_VERSION > 0x0039)
+  profile->Delete();
+  --this->started_profiles_count();
+  if (this->started_profiles_count() == 0) {
+    this->profiler()->Dispose();
+    this->profiler() = nullptr;
+  }
+#endif
+}
+
 InnerCpuProfiler* InnerCpuProfiler::Create(v8::Isolate* isolate) {
   return new InnerCpuProfiler(isolate);
 }
@@ -130,15 +157,6 @@ v8::CpuProfile* InnerCpuProfiler::StopProfiling(v8::Local<v8::String> title) {
   profile = this->isolate()->GetCpuProfiler()->StopProfiling(title);
 #else
   profile = v8::CpuProfiler::StopProfiling(title);
-#endif
-
-#if (NODE_MODULE_VERSION > 0x0039)
-  profile->Delete();
-  --this->started_profiles_count();
-  if (this->started_profiles_count() == 0) {
-    this->profiler()->Dispose();
-    this->profiler() = nullptr;
-  }
 #endif
   return profile;
 }

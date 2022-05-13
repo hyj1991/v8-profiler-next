@@ -18,7 +18,7 @@ using v8::String;
 using v8::Value;
 
 namespace per_thread {
-Nan::Persistent<v8::Object> profiles;
+thread_local Nan::Persistent<v8::Object> profiles;
 }
 
 NAN_METHOD(Profile_EmptyMethod) {}

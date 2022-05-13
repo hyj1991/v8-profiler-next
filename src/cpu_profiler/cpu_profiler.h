@@ -31,19 +31,18 @@ class InnerCpuProfiler {
   v8::Isolate* isolate() { return isolate_; }
 
   // methods
+  void CheckProfile(v8::CpuProfile*);
   void SetGenerateType(int type);
   void SetSamplingInterval(uint32_t interval);
   void StartProfiling(v8::Local<v8::String> title, bool recsamples = false);
   v8::CpuProfile* StopProfiling(v8::Local<v8::String> title);
 
  private:
-#if (NODE_MODULE_VERSION > 0x0039)
   int started_profiles_count_ = 0;
   v8::CpuProfiler* profiler_ = nullptr;
   v8::Isolate* isolate_;
   uint32_t sampling_interval_ = 0;
   int generate_type_ = 0;
-#endif
 };
 }  // namespace nodex
 

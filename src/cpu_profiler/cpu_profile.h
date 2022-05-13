@@ -7,7 +7,7 @@
 namespace nodex {
 
 namespace per_thread {
-extern Nan::Persistent<v8::Object> profiles;
+extern thread_local Nan::Persistent<v8::Object> profiles;
 }
 
 class Profile {
