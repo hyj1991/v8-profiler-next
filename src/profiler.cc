@@ -1,9 +1,9 @@
-#include "cpu_profiler.h"
+#include "cpu_profiler/cpu_profiler.h"
 #include "environment_data.h"
-#include "heap_profiler.h"
+#include "heap_profiler/sampling_heap_profiler.h"
+#include "heapsnapshot/heap_profiler.h"
 #include "nan.h"
 #include "node.h"
-#include "sampling_heap_profile.h"
 #include "v8-inner.h"
 
 namespace nodex {

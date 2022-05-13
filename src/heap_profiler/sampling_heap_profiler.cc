@@ -1,4 +1,4 @@
-#include "sampling_heap_profile.h"
+#include "sampling_heap_profiler.h"
 
 namespace nodex {
 using v8::Array;
