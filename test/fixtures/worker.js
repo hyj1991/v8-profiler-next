@@ -31,6 +31,10 @@ function main() {
     const w = new workerThreads.Worker(__filename, {
       env: process.env,
     });
+
+    // create heapsnapshot in main thread
+    createSnapshot('main.heapsnapshot');
+
     v8Profiler.startProfiling('main', true);
     v8Profiler.startSamplingHeapProfiling();
     w.once('exit', code => {
@@ -39,9 +43,6 @@ function main() {
 
       // create heap profile in main thread
       createProfile('main.heapprofile', 'stopSamplingHeapProfiling');
-
-      // create heapsnapshot in main thread
-      createSnapshot('main.heapsnapshot');
 
       console.log(JSON.stringify({ code }));
     });

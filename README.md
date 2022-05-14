@@ -106,6 +106,42 @@ transform.pipe(process.stdout);
 transform.on('finish', snapshot.delete.bind(snapshot));
 ```
 
+Get `.heapsnapshot` in `worker_threads`:
+
+```js
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const v8Profiler = require('./');
+const workerThreads = require('worker_threads');
+
+function createSnapshot(filename) {
+  const snapshot = v8Profiler.takeSnapshot();
+  const file = path.join(__dirname, filename);
+  const transform = snapshot.export();
+  transform.pipe(fs.createWriteStream(file));
+  transform.on('finish', snapshot.delete.bind(snapshot));
+}
+
+if (workerThreads.isMainThread) {
+  const w = new workerThreads.Worker(__filename, {
+    env: process.env,
+  });
+
+  // create heapsnapshot in main thread
+  createSnapshot('main.heapsnapshot');
+
+} else {
+  const start = Date.now();
+  const array = [];
+  while (Date.now() - start < 2000) { array.push(new Array(1e3).fill('*')); }
+
+  // create heapsnapshot in worker_threads
+  createSnapshot('worker_threads.heapsnapshot');
+}
+```
+
 ### take allocation profile
 
 **Attention:** If node version < v12.x, please use sampling heap profiling alone without cpu profiling or taking snapshot.
@@ -145,7 +181,7 @@ if (workerThreads.isMainThread) {
   });
   v8Profiler.startSamplingHeapProfiling();
   w.once('exit', code => {
-    // create cpu profile in main thread
+    // create heap profile in main thread
     const profile = v8Profiler.stopSamplingHeapProfiling();
     const mainProfile = path.join(__dirname, 'main.heapprofile');
     fs.existsSync(mainProfile) && fs.unlinkSync(mainProfile);
@@ -153,7 +189,7 @@ if (workerThreads.isMainThread) {
   });
 } else {
   v8Profiler.startSamplingHeapProfiling();
-  // create cpu profile in worker_threads
+  // create heap profile in worker_threads
   const start = Date.now();
   const array = [];
   while (Date.now() - start < 2000) { array.push(new Array(1e3).fill('*')); }
