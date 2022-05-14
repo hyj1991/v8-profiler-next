@@ -1,5 +1,6 @@
 #include "cpu_profiler/cpu_profiler.h"
 #include "heap_profiler/sampling_heap_profiler.h"
+#include "heapsnapshot/heap_graph_node.h"
 #include "heapsnapshot/heap_profiler.h"
 #include "heapsnapshot/heap_snapshot.h"
 #include "nan.h"
@@ -21,6 +22,7 @@ class EnvironmentData {
   InnerSamplingHeapProfiler*& heap_profiler() { return heap_profiler_; }
   InnerHeapProfiler*& heapsnapshot() { return heapsnapshot_; }
   InnerSnapshot*& snapshot() { return snapshot_; }
+  InnerGraphNode*& graph_node() { return graph_node_; }
 
  private:
   v8::Isolate* isolate_ = nullptr;
@@ -28,5 +30,6 @@ class EnvironmentData {
   InnerSamplingHeapProfiler* heap_profiler_ = nullptr;
   InnerHeapProfiler* heapsnapshot_ = nullptr;
   InnerSnapshot* snapshot_ = nullptr;
+  InnerGraphNode* graph_node_ = nullptr;
 };
 }  // namespace nodex

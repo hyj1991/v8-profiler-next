@@ -1,6 +1,8 @@
 #include "heap_graph_node.h"
 
+#include "environment_data.h"
 #include "heap_graph_edge.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using v8::Array;
@@ -37,14 +39,22 @@ void GraphNode::Initialize() {
 }
 
 #if (NODE_MODULE_VERSION <= 0x000B)
-NAN_METHOD(GraphNode::GetHeapValue) {
+GRAPH_NODE_METHODS(NAN_GRAPH_NODE_METHOD);
+
+INNER_METHOD(InnerGraphNode::GetHeapValue) {
+  HandleScope scope(this->isolate());
+
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
   HeapGraphNode* node = static_cast<HeapGraphNode*>(ptr);
   info.GetReturnValue().Set(Nan::New(node->GetHeapValue()));
 }
 #endif
 
-NAN_GETTER(GraphNode::GetChildren) {
+GRAPH_NODE_GETTER(NAN_GRAPH_NODE_GETTER);
+
+INNER_GETTER(InnerGraphNode::GetChildren) {
+  HandleScope scope(this->isolate());
+
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
   HeapGraphNode* node = static_cast<HeapGraphNode*>(ptr);
   uint32_t count = node->GetChildrenCount();
