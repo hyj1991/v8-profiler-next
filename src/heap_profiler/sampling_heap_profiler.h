@@ -1,10 +1,19 @@
 #ifndef NODE_SAMPLING_HEAP_PROFILE_
 #define NODE_SAMPLING_HEAP_PROFILE_
 
+#include "isolate_aware.h"
 #include "nan.h"
 #include "v8-profiler.h"
 
 namespace nodex {
+
+#define SAMPLING_HEAP_PROFILE_METHODS(V) \
+  V(StartSamplingHeapProfiling);         \
+  V(StopSamplingHeapProfiling);
+
+#define NAN_SAMPLING_HEAP_PROFILE_METHOD(func)         \
+  CALL_NAN_METHOD(heap_profiler, SamplingHeapProfiler, \
+                  InnerSamplingHeapProfiler, func)
 
 class SamplingHeapProfiler {
  public:
@@ -13,25 +22,13 @@ class SamplingHeapProfiler {
   virtual ~SamplingHeapProfiler();
 
  protected:
-  static NAN_METHOD(StartSamplingHeapProfiling);
-  static NAN_METHOD(StopSamplingHeapProfiling);
+  SAMPLING_HEAP_PROFILE_METHODS(static NAN_METHOD);
 };
 
-class InnerSamplingHeapProfiler {
+class InnerSamplingHeapProfiler : IsolateAware {
  public:
-  static InnerSamplingHeapProfiler* Create(v8::Isolate* isolate);
-  InnerSamplingHeapProfiler(v8::Isolate* isolate) : isolate_(isolate) {}
-  v8::Isolate* isolate() { return isolate_; }
-
-  void StartSamplingHeapProfiling(uint64_t sample_interval = -1,
-                                  int stack_depth = -1);
-  void CheckProfile(v8::AllocationProfile*);
-  v8::AllocationProfile* GetAllocationProfile();
-  v8::Local<v8::Object> TranslateAllocationProfile(
-      v8::AllocationProfile::Node* node);
-
- private:
-  v8::Isolate* isolate_;
+  InnerSamplingHeapProfiler(v8::Isolate* isolate) : IsolateAware(isolate){};
+  SAMPLING_HEAP_PROFILE_METHODS(INNER_METHOD);
 };
 
 }  // namespace nodex
