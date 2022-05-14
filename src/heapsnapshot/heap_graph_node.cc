@@ -13,8 +13,10 @@ using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<ObjectTemplate> GraphNode::graph_node_template_;
-Nan::Persistent<Object> GraphNode::graph_node_cache;
+namespace per_thread {
+thread_local Nan::Persistent<Object> graph_node_cache;
+thread_local Nan::Persistent<v8::ObjectTemplate> graph_node_template;
+}  // namespace per_thread
 
 NAN_METHOD(GraphNode_EmptyMethod) {}
 
@@ -30,8 +32,8 @@ void GraphNode::Initialize() {
 #endif
   Nan::SetAccessor(o, Nan::New<String>("children").ToLocalChecked(),
                    GraphNode::GetChildren);
-  graph_node_template_.Reset(o);
-  graph_node_cache.Reset(_cache);
+  per_thread::graph_node_template.Reset(o);
+  per_thread::graph_node_cache.Reset(_cache);
 }
 
 #if (NODE_MODULE_VERSION <= 0x000B)
@@ -59,23 +61,23 @@ NAN_GETTER(GraphNode::GetChildren) {
 Local<Value> GraphNode::New(const HeapGraphNode* node) {
   Nan::EscapableHandleScope scope;
 
-  if (graph_node_template_.IsEmpty()) {
+  if (per_thread::graph_node_template.IsEmpty()) {
     GraphNode::Initialize();
   }
 
   Local<Object> graph_node;
-  Local<Object> _cache = Nan::New(graph_node_cache);
+  Local<Object> _cache = Nan::New(per_thread::graph_node_cache);
   int32_t _id = node->GetId();
   if (Nan::Has(_cache, _id).ToChecked()) {
     graph_node = Nan::To<Object>(Nan::Get(_cache, _id).ToLocalChecked())
                      .ToLocalChecked();
   } else {
 #if (NODE_MODULE_VERSION > 0x0040)
-    graph_node = Nan::New(graph_node_template_)
+    graph_node = Nan::New(per_thread::graph_node_template)
                      ->NewInstance(Nan::GetCurrentContext())
                      .ToLocalChecked();
 #else
-    graph_node = Nan::New(graph_node_template_)->NewInstance();
+    graph_node = Nan::New(per_thread::graph_node_template)->NewInstance();
 #endif
     Nan::SetInternalFieldPointer(graph_node, 0,
                                  const_cast<HeapGraphNode*>(node));
