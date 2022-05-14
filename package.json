@@ -4,8 +4,12 @@
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
-    "test": "mocha test/*.test.js --timeout 10000",
-    "build": "node-gyp rebuild"
+    "test-old": "mocha test/*.test.js --exclude test/worker.test.js --timeout 10000",
+    "test-new": "mocha test/*.test.js --timeout 10000",
+    "test": "node scripts/test.js",
+    "test-single": "mocha --timeout 10000",
+    "build": "node-gyp rebuild",
+    "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\""
   },
   "repository": {
     "type": "git",
@@ -23,6 +27,7 @@
   "homepage": "https://github.com/hyj1991/v8-profiler-next#readme",
   "files": [
     "src",
+    "lib",
     "binding.gyp",
     "dispatch.js",
     "index.d.ts",
@@ -34,6 +39,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "clang-format": "^1.8.0",
     "mocha": "^5.2.0"
   }
 }
