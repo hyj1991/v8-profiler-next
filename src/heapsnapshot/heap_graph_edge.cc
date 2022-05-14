@@ -1,6 +1,7 @@
 #include "heap_graph_edge.h"
 
 #include "heap_graph_node.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using v8::HeapGraphEdge;
@@ -10,8 +11,8 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-Local<Value> GraphEdge::New(const HeapGraphEdge* node) {
-  Nan::EscapableHandleScope scope;
+Local<Value> GraphEdge::New(v8::Isolate* isolate, const HeapGraphEdge* node) {
+  EscapableHandleScope scope(isolate);
 
   Local<Object> graph_edge = Nan::New<Object>();
 
@@ -46,8 +47,8 @@ Local<Value> GraphEdge::New(const HeapGraphEdge* node) {
 #else
   Local<Value> name = Nan::New<Value>(node->GetName());
 #endif
-  Local<Value> from = GraphNode::New(node->GetFromNode());
-  Local<Value> to = GraphNode::New(node->GetToNode());
+  Local<Value> from = GraphNode::New(isolate, node->GetFromNode());
+  Local<Value> to = GraphNode::New(isolate, node->GetToNode());
 
   Nan::Set(graph_edge, Nan::New<String>("type").ToLocalChecked(), type);
   Nan::Set(graph_edge, Nan::New<String>("name").ToLocalChecked(), name);

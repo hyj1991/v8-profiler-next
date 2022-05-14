@@ -54,8 +54,8 @@ INNER_GETTER(InnerSnapshot::GetRoot) {
     info.GetReturnValue().Set(root);
   } else {
     void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
-    Local<Value> _root =
-        GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetRoot());
+    Local<Value> _root = GraphNode::New(
+        this->isolate(), static_cast<HeapSnapshot*>(ptr)->GetRoot());
     Nan::SetPrivate(info.This(), __root, _root);
     info.GetReturnValue().Set(_root);
   }
@@ -74,8 +74,8 @@ INNER_METHOD(InnerSnapshot::GetNode) {
 
   int32_t index = Nan::To<int32_t>(info[0]).ToChecked();
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
-  info.GetReturnValue().Set(
-      GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNode(index)));
+  info.GetReturnValue().Set(GraphNode::New(
+      this->isolate(), static_cast<HeapSnapshot*>(ptr)->GetNode(index)));
 }
 
 INNER_METHOD(InnerSnapshot::GetNodeById) {
@@ -89,8 +89,8 @@ INNER_METHOD(InnerSnapshot::GetNodeById) {
 
   SnapshotObjectId id = Nan::To<int32_t>(info[0]).ToChecked();
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
-  info.GetReturnValue().Set(
-      GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNodeById(id)));
+  info.GetReturnValue().Set(GraphNode::New(
+      this->isolate(), static_cast<HeapSnapshot*>(ptr)->GetNodeById(id)));
 }
 
 INNER_METHOD(InnerSnapshot::Serialize) {

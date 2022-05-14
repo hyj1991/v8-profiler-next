@@ -19,10 +19,11 @@ namespace nodex {
 
 class GraphNode {
  public:
-  static v8::Local<v8::Value> New(const v8::HeapGraphNode* node);
+  static v8::Local<v8::Value> New(v8::Isolate* isolate,
+                                  const v8::HeapGraphNode* node);
 
  private:
-  static void Initialize();
+  static void Initialize(v8::Isolate* isolate);
   GRAPH_NODE_METHODS(static NAN_METHOD);
   GRAPH_NODE_GETTER(static NAN_GETTER);
 };

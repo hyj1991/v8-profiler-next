@@ -22,8 +22,8 @@ thread_local Nan::Persistent<v8::ObjectTemplate> graph_node_template;
 
 NAN_METHOD(GraphNode_EmptyMethod) {}
 
-void GraphNode::Initialize() {
-  Nan::HandleScope scope;
+void GraphNode::Initialize(v8::Isolate* isolate) {
+  HandleScope scope(isolate);
 
   Local<FunctionTemplate> f = Nan::New<FunctionTemplate>(GraphNode_EmptyMethod);
   Local<ObjectTemplate> o = f->InstanceTemplate();
@@ -60,7 +60,7 @@ INNER_GETTER(InnerGraphNode::GetChildren) {
   uint32_t count = node->GetChildrenCount();
   Local<Array> children = Nan::New<Array>(count);
   for (uint32_t index = 0; index < count; ++index) {
-    Local<Value> child = GraphEdge::New(node->GetChild(index));
+    Local<Value> child = GraphEdge::New(this->isolate(), node->GetChild(index));
     Nan::Set(children, index, child);
   }
   Nan::Set(info.This(), Nan::New<String>("children").ToLocalChecked(),
@@ -68,11 +68,11 @@ INNER_GETTER(InnerGraphNode::GetChildren) {
   info.GetReturnValue().Set(children);
 }
 
-Local<Value> GraphNode::New(const HeapGraphNode* node) {
-  Nan::EscapableHandleScope scope;
+Local<Value> GraphNode::New(v8::Isolate* isolate, const HeapGraphNode* node) {
+  EscapableHandleScope scope(isolate);
 
   if (per_thread::graph_node_template.IsEmpty()) {
-    GraphNode::Initialize();
+    GraphNode::Initialize(isolate);
   }
 
   Local<Object> graph_node;
