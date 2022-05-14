@@ -7,7 +7,7 @@
 #include "v8-profiler.h"
 
 namespace nodex {
-#define METHODS(V)             \
+#define HEAP_METHODS(V)        \
   V(TakeSnapshot);             \
   V(StartTrackingHeapObjects); \
   V(StopTrackingHeapObjects);  \
@@ -26,13 +26,13 @@ class HeapProfiler {
   virtual ~HeapProfiler();
 
  protected:
-  METHODS(static NAN_METHOD)
+  HEAP_METHODS(static NAN_METHOD);
 };
 
 class InnerHeapProfiler : IsolateAware {
  public:
   InnerHeapProfiler(v8::Isolate* isolate) : IsolateAware(isolate){};
-  METHODS(INNER_METHOD);
+  HEAP_METHODS(INNER_METHOD);
 };
 }  // namespace nodex
 

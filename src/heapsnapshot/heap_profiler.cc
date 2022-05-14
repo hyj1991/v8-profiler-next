@@ -18,6 +18,10 @@ using v8::SnapshotObjectId;
 using v8::String;
 using v8::Value;
 
+namespace per_thread {
+extern thread_local Nan::Persistent<Object> snapshots;
+}
+
 HeapProfiler::HeapProfiler() {}
 HeapProfiler::~HeapProfiler() {}
 
@@ -66,11 +70,11 @@ void HeapProfiler::Initialize(Local<Object> target) {
   Nan::Set(heapProfiler, Nan::New<String>("snapshots").ToLocalChecked(),
            snapshots);
 
-  Snapshot::snapshots.Reset(snapshots);
+  per_thread::snapshots.Reset(snapshots);
   Nan::Set(target, Nan::New<String>("heap").ToLocalChecked(), heapProfiler);
 }
 
-METHODS(NAN_HEAP_PROFILER);
+HEAP_METHODS(NAN_HEAP_PROFILER);
 
 INNER_METHOD(InnerHeapProfiler::TakeSnapshot) {
   HandleScope scope(this->isolate());
@@ -97,7 +101,7 @@ INNER_METHOD(InnerHeapProfiler::TakeSnapshot) {
       v8::HeapProfiler::TakeSnapshot(title, HeapSnapshot::kFull, control);
 #endif
 
-  info.GetReturnValue().Set(Snapshot::New(snapshot));
+  info.GetReturnValue().Set(Snapshot::New(this->isolate(), snapshot));
 }
 
 INNER_METHOD(InnerHeapProfiler::StartTrackingHeapObjects) {

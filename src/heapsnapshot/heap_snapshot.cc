@@ -1,7 +1,9 @@
 #include "heap_snapshot.h"
 
+#include "environment_data.h"
 #include "heap_graph_node.h"
 #include "heap_output_stream.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using v8::Array;
@@ -18,13 +20,15 @@ using v8::SnapshotObjectId;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<ObjectTemplate> Snapshot::snapshot_template_;
-Nan::Persistent<Object> Snapshot::snapshots;
+namespace per_thread {
+thread_local Nan::Persistent<ObjectTemplate> snapshot_template;
+thread_local Nan::Persistent<Object> snapshots;
+}  // namespace per_thread
 
 NAN_METHOD(Snapshot_EmptyMethod) {}
 
-void Snapshot::Initialize() {
-  Nan::HandleScope scope;
+void Snapshot::Initialize(v8::Isolate* isolate) {
+  HandleScope scope(isolate);
 
   Local<FunctionTemplate> f = Nan::New<FunctionTemplate>(Snapshot_EmptyMethod);
   Local<ObjectTemplate> o = f->InstanceTemplate();
@@ -35,10 +39,14 @@ void Snapshot::Initialize() {
   Nan::SetMethod(o, "getNodeById", Snapshot::GetNodeById);
   Nan::SetMethod(o, "delete", Snapshot::Delete);
   Nan::SetMethod(o, "serialize", Snapshot::Serialize);
-  snapshot_template_.Reset(o);
+  per_thread::snapshot_template.Reset(o);
 }
 
-NAN_GETTER(Snapshot::GetRoot) {
+SNAPSHOT_GETTER(NAN_HEAP_SNAPSHOT_GETTER);
+
+INNER_GETTER(InnerSnapshot::GetRoot) {
+  HandleScope scope(this->isolate());
+
   Local<Object> _root;
   Local<String> __root = Nan::New<String>("_root").ToLocalChecked();
   if (Nan::Has(info.This(), __root).ToChecked()) {
@@ -53,7 +61,11 @@ NAN_GETTER(Snapshot::GetRoot) {
   }
 }
 
-NAN_METHOD(Snapshot::GetNode) {
+SNAPSHOT_METHODS(NAN_HEAP_SNAPSHOT_METHOD);
+
+INNER_METHOD(InnerSnapshot::GetNode) {
+  HandleScope scope(this->isolate());
+
   if (!info.Length()) {
     return Nan::ThrowError("No index specified");
   } else if (!info[0]->IsInt32()) {
@@ -66,7 +78,9 @@ NAN_METHOD(Snapshot::GetNode) {
       GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNode(index)));
 }
 
-NAN_METHOD(Snapshot::GetNodeById) {
+INNER_METHOD(InnerSnapshot::GetNodeById) {
+  HandleScope scope(this->isolate());
+
   if (!info.Length()) {
     return Nan::ThrowError("No id specified");
   } else if (!info[0]->IsInt32()) {
@@ -79,7 +93,9 @@ NAN_METHOD(Snapshot::GetNodeById) {
       GraphNode::New(static_cast<HeapSnapshot*>(ptr)->GetNodeById(id)));
 }
 
-NAN_METHOD(Snapshot::Serialize) {
+INNER_METHOD(InnerSnapshot::Serialize) {
+  HandleScope scope(this->isolate());
+
   void* ptr = Nan::GetInternalFieldPointer(info.This(), 0);
   if (info.Length() < 2) {
     return Nan::ThrowError("Invalid number of arguments");
@@ -94,10 +110,12 @@ NAN_METHOD(Snapshot::Serialize) {
   static_cast<HeapSnapshot*>(ptr)->Serialize(stream, HeapSnapshot::kJSON);
 }
 
-NAN_METHOD(Snapshot::Delete) {
+INNER_METHOD(InnerSnapshot::Delete) {
+  HandleScope scope(this->isolate());
+
   void* ptr = Nan::GetInternalFieldPointer(info.Holder(), 0);
 
-  Local<Object> snapshots = Nan::New<Object>(Snapshot::snapshots);
+  Local<Object> snapshots = Nan::New<Object>(per_thread::snapshots);
 
   Local<String> __uid = Nan::New<String>("uid").ToLocalChecked();
   Local<Integer> _uid =
@@ -109,20 +127,20 @@ NAN_METHOD(Snapshot::Delete) {
   info.GetReturnValue().Set(snapshots);
 }
 
-Local<Value> Snapshot::New(const HeapSnapshot* node) {
-  Nan::EscapableHandleScope scope;
+Local<Value> Snapshot::New(v8::Isolate* isolate, const HeapSnapshot* node) {
+  EscapableHandleScope scope(isolate);
 
-  if (snapshot_template_.IsEmpty()) {
-    Snapshot::Initialize();
+  if (per_thread::snapshot_template.IsEmpty()) {
+    Snapshot::Initialize(isolate);
   }
 
   Local<Object> snapshot;
 #if (NODE_MODULE_VERSION > 0x0040)
-  snapshot = Nan::New(snapshot_template_)
+  snapshot = Nan::New(per_thread::snapshot_template)
                  ->NewInstance(Nan::GetCurrentContext())
                  .ToLocalChecked();
 #else
-  snapshot = Nan::New(snapshot_template_)->NewInstance();
+  snapshot = Nan::New(per_thread::snapshot_template)->NewInstance();
 #endif
   Nan::SetInternalFieldPointer(snapshot, 0, const_cast<HeapSnapshot*>(node));
 
@@ -147,7 +165,7 @@ Local<Value> Snapshot::New(const HeapSnapshot* node) {
   Nan::Set(snapshot, Nan::New<String>("maxSnapshotJSObjectId").ToLocalChecked(),
            objectId);
 
-  Local<Object> snapshots = Nan::New<Object>(Snapshot::snapshots);
+  Local<Object> snapshots = Nan::New<Object>(per_thread::snapshots);
   Nan::Set(snapshots, _uid, snapshot);
 
   return scope.Escape(snapshot);
