@@ -201,7 +201,8 @@ INNER_METHOD(InnerHeapProfiler::GetHeapStats) {
   Local<Function> iterator = Local<Function>::Cast(info[0]);
   Local<Function> callback = Local<Function>::Cast(info[1]);
 
-  OutputStreamAdapter* stream = new OutputStreamAdapter(iterator, callback);
+  OutputStreamAdapter* stream =
+      new OutputStreamAdapter(this->isolate(), iterator, callback);
 #if (NODE_MODULE_VERSION > 0x000B)
   SnapshotObjectId ID =
       v8::Isolate::GetCurrent()->GetHeapProfiler()->GetHeapStats(stream);

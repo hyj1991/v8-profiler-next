@@ -1,5 +1,7 @@
 #include "heap_output_stream.h"
 
+#include "v8-inner.h"
+
 namespace nodex {
 using Nan::TryCatch;
 using v8::Array;
@@ -13,7 +15,7 @@ using v8::Value;
 using v8::Integer;
 
 void OutputStreamAdapter::EndOfStream() {
-  Nan::HandleScope scope;
+  HandleScope scope(this->isolate());
   TryCatch try_catch;
   Nan::Call(callback, Nan::GetCurrentContext()->Global(), 0, NULL);
 
@@ -26,7 +28,7 @@ int OutputStreamAdapter::GetChunkSize() { return 51200; }
 
 OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data,
                                                                int size) {
-  Nan::HandleScope scope;
+  HandleScope scope(this->isolate());
 
   Local<Value> argv[2] = {Nan::New<String>(data, size).ToLocalChecked(),
                           Nan::New<Integer>(size)};
@@ -45,7 +47,7 @@ OutputStream::WriteResult OutputStreamAdapter::WriteAsciiChunk(char* data,
 
 OutputStream::WriteResult OutputStreamAdapter::WriteHeapStatsChunk(
     HeapStatsUpdate* data, int count) {
-  Nan::HandleScope scope;
+  HandleScope scope(this->isolate());
 
   Local<Array> samples = Nan::New<Array>();
   for (int index = 0; index < count; index++) {

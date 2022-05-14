@@ -106,7 +106,8 @@ INNER_METHOD(InnerSnapshot::Serialize) {
   Local<Function> iterator = Local<Function>::Cast(info[0]);
   Local<Function> callback = Local<Function>::Cast(info[1]);
 
-  OutputStreamAdapter* stream = new OutputStreamAdapter(iterator, callback);
+  OutputStreamAdapter* stream =
+      new OutputStreamAdapter(this->isolate(), iterator, callback);
   static_cast<HeapSnapshot*>(ptr)->Serialize(stream, HeapSnapshot::kJSON);
 }
 
