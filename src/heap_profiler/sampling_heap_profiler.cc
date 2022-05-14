@@ -1,5 +1,8 @@
 #include "sampling_heap_profiler.h"
 
+#include "environment_data.h"
+#include "v8-inner.h"
+
 namespace nodex {
 using v8::Array;
 using v8::Integer;
@@ -12,11 +15,118 @@ using v8::Value;
 using v8::AllocationProfile;
 #endif
 
-SamplingHeapProfile::SamplingHeapProfile() {}
-SamplingHeapProfile::~SamplingHeapProfile() {}
+// class SamplingHeapProfiler
+SamplingHeapProfiler::SamplingHeapProfiler() {}
+SamplingHeapProfiler::~SamplingHeapProfiler() {}
 
+void SamplingHeapProfiler::Initialize(Local<Object> target) {
+  HandleScope scope(target->GetIsolate());
+  // local object
+  Local<Object> samplingHeapProfile = Nan::New<Object>();
+  // methods
+  Nan::SetMethod(samplingHeapProfile, "startSamplingHeapProfiling",
+                 SamplingHeapProfiler::StartSamplingHeapProfiling);
+  Nan::SetMethod(samplingHeapProfile, "stopSamplingHeapProfiling",
+                 SamplingHeapProfiler::StopSamplingHeapProfiling);
+  // set  samplingHeap
+  Nan::Set(target, Nan::New<String>("samplingHeap").ToLocalChecked(),
+           samplingHeapProfile);
+}
+
+NAN_METHOD(SamplingHeapProfiler::StartSamplingHeapProfiling) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
+  if (env_data->heap_profiler() == nullptr) {
+    env_data->heap_profiler() =
+        InnerSamplingHeapProfiler::Create(env_data->isolate());
+  }
+
+  {
+    HandleScope scope(env_data->isolate());
+    uint64_t sample_interval = -1;
+    int stack_depth = -1;
+
+    if (info.Length() == 2) {
+      if (!info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("first argument type must be uint32");
+      }
+      if (!info[1]->IsNumber()) {
+        return Nan::ThrowTypeError("first argument type must be number");
+      }
+      sample_interval = Nan::To<uint32_t>(info[0]).ToChecked();
+      stack_depth =
+          static_cast<int>(Nan::To<Integer>(info[1]).ToLocalChecked()->Value());
+    }
+
+    env_data->heap_profiler()->StartSamplingHeapProfiling(sample_interval,
+                                                          stack_depth);
+  }
+}
+
+NAN_METHOD(SamplingHeapProfiler::StopSamplingHeapProfiling) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
+  if (env_data->heap_profiler() == nullptr) {
+    env_data->heap_profiler() =
+        InnerSamplingHeapProfiler::Create(env_data->isolate());
+  }
+
+  {
+    HandleScope scope(env_data->isolate());
+    // return allocationProfile
+    AllocationProfile* profile =
+        env_data->heap_profiler()->GetAllocationProfile();
+    AllocationProfile::Node* root = profile->GetRootNode();
+    // translate
+    Local<Object> js_node =
+        env_data->heap_profiler()->TranslateAllocationProfile(root);
+    Local<Object> result = Nan::New<Object>();
+    Nan::Set(result, Nan::New<String>("head").ToLocalChecked(), js_node);
+    info.GetReturnValue().Set(result);
+    env_data->heap_profiler()->CheckProfile(profile);
+  }
+}
+
+// class InnerSamplingHeapProfiler
+InnerSamplingHeapProfiler* InnerSamplingHeapProfiler::Create(
+    v8::Isolate* isolate) {
+  return new InnerSamplingHeapProfiler(isolate);
+}
+
+void InnerSamplingHeapProfiler::StartSamplingHeapProfiling(
+    uint64_t sample_interval, int stack_depth) {
 #if NODE_MODULE_VERSION >= 0x0030
-Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
+  if (sample_interval >= 0 && stack_depth >= 0) {
+    this->isolate()->GetHeapProfiler()->StartSamplingHeapProfiler(
+        sample_interval, stack_depth);
+  } else {
+    this->isolate()->GetHeapProfiler()->StartSamplingHeapProfiler();
+  }
+#endif
+}
+
+v8::AllocationProfile* InnerSamplingHeapProfiler::GetAllocationProfile() {
+#if NODE_MODULE_VERSION >= 0x0030
+  AllocationProfile* profile =
+      this->isolate()->GetHeapProfiler()->GetAllocationProfile();
+  return profile;
+#endif
+}
+
+void InnerSamplingHeapProfiler::CheckProfile(v8::AllocationProfile* profile) {
+#if NODE_MODULE_VERSION >= 0x0030
+  free(profile);
+  this->isolate()->GetHeapProfiler()->StopSamplingHeapProfiler();
+#endif
+}
+
+Local<Object> InnerSamplingHeapProfiler::TranslateAllocationProfile(
+    AllocationProfile::Node* node) {
+#if NODE_MODULE_VERSION >= 0x0030
+  EscapableHandleScope scope(this->isolate());
+
   Local<Object> js_node = Nan::New<Object>();
 
   // add call frame
@@ -54,58 +164,7 @@ Local<Object> TranslateAllocationProfile(AllocationProfile::Node* node) {
   }
   Nan::Set(js_node, Nan::New<String>("children").ToLocalChecked(), children);
 
-  return js_node;
-}
-#endif
-
-void SamplingHeapProfile::Initialize(Local<Object> target) {
-  Nan::HandleScope scope;
-  // local object
-  Local<Object> samplingHeapProfile = Nan::New<Object>();
-  // methods
-  Nan::SetMethod(samplingHeapProfile, "startSamplingHeapProfiling",
-                 SamplingHeapProfile::StartSamplingHeapProfiling);
-  Nan::SetMethod(samplingHeapProfile, "stopSamplingHeapProfiling",
-                 SamplingHeapProfile::StopSamplingHeapProfiling);
-  // set  samplingHeap
-  Nan::Set(target, Nan::New<String>("samplingHeap").ToLocalChecked(),
-           samplingHeapProfile);
-}
-
-NAN_METHOD(SamplingHeapProfile::StartSamplingHeapProfiling) {
-#if NODE_MODULE_VERSION >= 0x0030
-  if (info.Length() == 2) {
-    if (!info[0]->IsUint32()) {
-      return Nan::ThrowTypeError("first argument type must be uint32");
-    }
-    if (!info[1]->IsNumber()) {
-      return Nan::ThrowTypeError("first argument type must be number");
-    }
-    uint64_t sample_interval = Nan::To<uint32_t>(info[0]).ToChecked();
-    int stack_depth =
-        static_cast<int>(Nan::To<Integer>(info[1]).ToLocalChecked()->Value());
-    v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler(
-        sample_interval, stack_depth);
-  } else {
-    v8::Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler();
-  }
-#endif
-}
-
-NAN_METHOD(SamplingHeapProfile::StopSamplingHeapProfiling) {
-#if NODE_MODULE_VERSION >= 0x0030
-  // return allocationProfile
-  AllocationProfile* profile =
-      v8::Isolate::GetCurrent()->GetHeapProfiler()->GetAllocationProfile();
-  AllocationProfile::Node* root = profile->GetRootNode();
-  // translate
-  Local<Object> js_node = TranslateAllocationProfile(root);
-  Local<Object> result = Nan::New<Object>();
-  Nan::Set(result, Nan::New<String>("head").ToLocalChecked(), js_node);
-  info.GetReturnValue().Set(result);
-  free(profile);
-  // stop sampling heap profile
-  v8::Isolate::GetCurrent()->GetHeapProfiler()->StopSamplingHeapProfiler();
+  return scope.Escape(js_node);
 #endif
 }
 }  // namespace nodex

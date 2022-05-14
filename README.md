@@ -49,7 +49,7 @@ setTimeout(() => {
 }, 5 * 60 * 1000);
 ```
 
-Get `cpuprofile` in `worker_threads`:
+Get `.cpuprofile` in `worker_threads`:
 
 ```js
 'use strict';
@@ -127,6 +127,41 @@ setTimeout(() => {
   require('fs').writeFileSync('./shf.heapprofile', JSON.stringify(profile));
 	console.log(profile);
 }, 60 * 1000);
+```
+
+Get `.heapprofile` in `worker_threads`:
+
+```js
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const v8Profiler = require('./');
+const workerThreads = require('worker_threads');
+
+if (workerThreads.isMainThread) {
+  const w = new workerThreads.Worker(__filename, {
+    env: process.env,
+  });
+  v8Profiler.startSamplingHeapProfiling();
+  w.once('exit', code => {
+    // create cpu profile in main thread
+    const profile = v8Profiler.stopSamplingHeapProfiling();
+    const mainProfile = path.join(__dirname, 'main.heapprofile');
+    fs.existsSync(mainProfile) && fs.unlinkSync(mainProfile);
+    fs.writeFileSync(mainProfile, JSON.stringify(profile));
+  });
+} else {
+  v8Profiler.startSamplingHeapProfiling();
+  // create cpu profile in worker_threads
+  const start = Date.now();
+  const array = [];
+  while (Date.now() - start < 2000) { array.push(new Array(1e3).fill('*')); }
+  const profile = v8Profiler.stopSamplingHeapProfiling();
+  const workerProfile = path.join(__dirname, 'worker_threads.heapprofile');
+  fs.existsSync(workerProfile) && fs.unlinkSync(workerProfile);
+  fs.writeFileSync(workerProfile, JSON.stringify(profile));
+}
 ```
 
 ## II. License

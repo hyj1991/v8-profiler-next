@@ -11,6 +11,10 @@ using v8::Local;
 using v8::Object;
 using v8::String;
 
+namespace per_thread {
+extern thread_local Nan::Persistent<v8::Object> profiles;
+}
+
 // class CpuProfiler
 void CpuProfiler::Initialize(Local<Object> target) {
   HandleScope scope(target->GetIsolate());
@@ -32,6 +36,8 @@ void CpuProfiler::Initialize(Local<Object> target) {
 
 NAN_METHOD(CpuProfiler::SetGenerateType) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
@@ -45,6 +51,8 @@ NAN_METHOD(CpuProfiler::SetGenerateType) {
 
 NAN_METHOD(CpuProfiler::SetSamplingInterval) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
@@ -58,6 +66,8 @@ NAN_METHOD(CpuProfiler::SetSamplingInterval) {
 
 NAN_METHOD(CpuProfiler::StartProfiling) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }
@@ -77,6 +87,8 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
 
 NAN_METHOD(CpuProfiler::StopProfiling) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) return;
+
   if (env_data->cpu_profiler() == nullptr) {
     env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
   }

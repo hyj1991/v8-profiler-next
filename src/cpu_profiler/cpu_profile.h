@@ -6,10 +6,6 @@
 
 namespace nodex {
 
-namespace per_thread {
-extern thread_local Nan::Persistent<v8::Object> profiles;
-}
-
 class Profile {
  public:
   Profile(v8::Isolate* isolate) : isolate_(isolate) {}

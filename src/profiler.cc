@@ -17,7 +17,7 @@ void InitializeProfiler(v8::Local<v8::Object> target) {
   // register profiler
   HeapProfiler::Initialize(target);
   CpuProfiler::Initialize(target);
-  SamplingHeapProfile::Initialize(target);
+  SamplingHeapProfiler::Initialize(target);
 }
 
 NODE_MODULE_CONTEXT_AWARE(profiler, InitializeProfiler)

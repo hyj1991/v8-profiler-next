@@ -11,6 +11,10 @@ const profile = {
   cpuprofile: {
     main: path.join(__dirname, 'fixtures/main.cpuprofile'),
     worker_threads: path.join(__dirname, 'fixtures/worker_threads.cpuprofile'),
+  },
+  heapprofile: {
+    main: path.join(__dirname, 'fixtures/main.heapprofile'),
+    worker_threads: path.join(__dirname, 'fixtures/worker_threads.heapprofile'),
   }
 };
 
@@ -23,6 +27,8 @@ function cleanFile(file) {
 function cleanProfile() {
   cleanFile(profile.cpuprofile.main);
   cleanFile(profile.cpuprofile.worker_threads);
+  cleanFile(profile.heapprofile.main);
+  cleanFile(profile.heapprofile.worker_threads);
 }
 
 function fork(filepath, options = {}) {
@@ -91,6 +97,14 @@ function getOutput(proc) {
 
     it('worker_threads create cpuprofile succeed', function () {
       assert(fs.existsSync(profile.cpuprofile.worker_threads));
+    });
+
+    it('main create heapprofile succeed', function () {
+      assert(fs.existsSync(profile.heapprofile.main));
+    });
+
+    it('worker_threads create heapprofile succeed', function () {
+      assert(fs.existsSync(profile.heapprofile.worker_threads));
     });
   });
 });
