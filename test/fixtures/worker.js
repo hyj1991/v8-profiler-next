@@ -13,6 +13,14 @@ function createProfile(filename, func, ...args) {
   fs.writeFileSync(file, JSON.stringify(profile));
 }
 
+function createSnapshot(filename) {
+  const snapshot = v8Profiler.takeSnapshot();
+  const file = path.join(__dirname, filename);
+  const transform = snapshot.export();
+  transform.pipe(fs.createWriteStream(file));
+  transform.on('finish', snapshot.delete.bind(snapshot));
+}
+
 function main() {
   if (!canIUseWorkerThreads) {
     return;
@@ -20,7 +28,6 @@ function main() {
 
   const workerThreads = require('worker_threads');
   if (workerThreads.isMainThread) {
-    const profiles = [];
     const w = new workerThreads.Worker(__filename, {
       env: process.env,
     });
@@ -32,6 +39,9 @@ function main() {
 
       // create heap profile in main thread
       createProfile('main.heapprofile', 'stopSamplingHeapProfiling');
+
+      // create heapsnapshot in main thread
+      createSnapshot('main.heapsnapshot');
 
       console.log(JSON.stringify({ code }));
     });
@@ -47,6 +57,9 @@ function main() {
 
     // create heap profile in worker_threads
     createProfile('worker_threads.heapprofile', 'stopSamplingHeapProfiling');
+
+    // create heapsnapshot in worker_threads
+    createSnapshot('worker_threads.heapsnapshot');
   }
 }
 

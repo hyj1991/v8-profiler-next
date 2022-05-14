@@ -15,6 +15,10 @@ const profile = {
   heapprofile: {
     main: path.join(__dirname, 'fixtures/main.heapprofile'),
     worker_threads: path.join(__dirname, 'fixtures/worker_threads.heapprofile'),
+  },
+  heapsnapshot: {
+    main: path.join(__dirname, 'fixtures/main.heapsnapshot'),
+    worker_threads: path.join(__dirname, 'fixtures/worker_threads.heapsnapshot'),
   }
 };
 
@@ -29,6 +33,8 @@ function cleanProfile() {
   cleanFile(profile.cpuprofile.worker_threads);
   cleanFile(profile.heapprofile.main);
   cleanFile(profile.heapprofile.worker_threads);
+  cleanFile(profile.heapsnapshot.main);
+  cleanFile(profile.heapsnapshot.worker_threads);
 }
 
 function fork(filepath, options = {}) {
@@ -66,7 +72,7 @@ function getOutput(proc) {
 
 
 (canIUseWorkerThreads ? describe : describe.skip)('worker_threads', function () {
-  describe('cpu profiling', function () {
+  describe('cpu profiling & heap profiling & take heapsnapshot', function () {
     let output;
     before(async function () {
       cleanProfile();
@@ -105,6 +111,14 @@ function getOutput(proc) {
 
     it('worker_threads create heapprofile succeed', function () {
       assert(fs.existsSync(profile.heapprofile.worker_threads));
+    });
+
+    it('main create heapsnapshot succeed', function () {
+      assert(fs.existsSync(profile.heapsnapshot.main));
+    });
+
+    it('worker_threads create heapsnapshot succeed', function () {
+      assert(fs.existsSync(profile.heapsnapshot.worker_threads));
     });
   });
 });
