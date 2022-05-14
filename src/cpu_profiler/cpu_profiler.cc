@@ -39,7 +39,7 @@ NAN_METHOD(CpuProfiler::SetGenerateType) {
   if (env_data == nullptr) return;
 
   if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
+    env_data->cpu_profiler() = IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
   }
 
   {
@@ -54,7 +54,7 @@ NAN_METHOD(CpuProfiler::SetSamplingInterval) {
   if (env_data == nullptr) return;
 
   if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
+    env_data->cpu_profiler() = IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
   }
 
   {
@@ -69,7 +69,7 @@ NAN_METHOD(CpuProfiler::StartProfiling) {
   if (env_data == nullptr) return;
 
   if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
+    env_data->cpu_profiler() = IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
   }
 
   {
@@ -90,7 +90,7 @@ NAN_METHOD(CpuProfiler::StopProfiling) {
   if (env_data == nullptr) return;
 
   if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() = InnerCpuProfiler::Create(env_data->isolate());
+    env_data->cpu_profiler() = IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
   }
 
   {
@@ -122,10 +122,6 @@ void InnerCpuProfiler::CheckProfile(v8::CpuProfile* profile) {
     this->profiler() = nullptr;
   }
 #endif
-}
-
-InnerCpuProfiler* InnerCpuProfiler::Create(v8::Isolate* isolate) {
-  return new InnerCpuProfiler(isolate);
 }
 
 void InnerCpuProfiler::SetGenerateType(int type) {

@@ -1,7 +1,9 @@
 #include "heap_profiler.h"
 
+#include "environment_data.h"
 #include "heap_output_stream.h"
 #include "heap_snapshot.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using Nan::TryCatch;
@@ -46,7 +48,7 @@ class ActivityControlAdapter : public ActivityControl {
 };
 
 void HeapProfiler::Initialize(Local<Object> target) {
-  Nan::HandleScope scope;
+  HandleScope scope(target->GetIsolate());
 
   Local<Object> heapProfiler = Nan::New<Object>();
   Local<Object> snapshots = Nan::New<Object>();
@@ -68,7 +70,11 @@ void HeapProfiler::Initialize(Local<Object> target) {
   Nan::Set(target, Nan::New<String>("heap").ToLocalChecked(), heapProfiler);
 }
 
-NAN_METHOD(HeapProfiler::TakeSnapshot) {
+METHODS(NAN_HEAP_PROFILER);
+
+INNER_METHOD(InnerHeapProfiler::TakeSnapshot) {
+  HandleScope scope(this->isolate());
+
 #if (NODE_MODULE_VERSION <= 0x0038)
   ActivityControlAdapter* control = new ActivityControlAdapter(info[1]);
 #endif
@@ -94,7 +100,9 @@ NAN_METHOD(HeapProfiler::TakeSnapshot) {
   info.GetReturnValue().Set(Snapshot::New(snapshot));
 }
 
-NAN_METHOD(HeapProfiler::StartTrackingHeapObjects) {
+INNER_METHOD(InnerHeapProfiler::StartTrackingHeapObjects) {
+  HandleScope scope(this->isolate());
+
 #if (NODE_MODULE_VERSION > 0x000B)
   v8::Isolate::GetCurrent()->GetHeapProfiler()->StartTrackingHeapObjects();
 #else
@@ -104,7 +112,9 @@ NAN_METHOD(HeapProfiler::StartTrackingHeapObjects) {
   return;
 }
 
-NAN_METHOD(HeapProfiler::GetHeapObjectId) {
+INNER_METHOD(InnerHeapProfiler::GetHeapObjectId) {
+  HandleScope scope(this->isolate());
+
   if (info[0].IsEmpty()) return;
 
   SnapshotObjectId id;
@@ -117,7 +127,9 @@ NAN_METHOD(HeapProfiler::GetHeapObjectId) {
   info.GetReturnValue().Set(Nan::New<Integer>(id));
 }
 
-NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
+INNER_METHOD(InnerHeapProfiler::GetObjectByHeapObjectId) {
+  HandleScope scope(this->isolate());
+
   SnapshotObjectId id = Nan::To<uint32_t>(info[0]).ToChecked();
   Local<Value> object;
 #if (NODE_MODULE_VERSION > 0x000B)
@@ -169,7 +181,9 @@ NAN_METHOD(HeapProfiler::GetObjectByHeapObjectId) {
   }
 }
 
-NAN_METHOD(HeapProfiler::StopTrackingHeapObjects) {
+INNER_METHOD(InnerHeapProfiler::StopTrackingHeapObjects) {
+  HandleScope scope(this->isolate());
+
 #if (NODE_MODULE_VERSION > 0x000B)
   v8::Isolate::GetCurrent()->GetHeapProfiler()->StopTrackingHeapObjects();
 #else
@@ -177,7 +191,9 @@ NAN_METHOD(HeapProfiler::StopTrackingHeapObjects) {
 #endif
 }
 
-NAN_METHOD(HeapProfiler::GetHeapStats) {
+INNER_METHOD(InnerHeapProfiler::GetHeapStats) {
+  HandleScope scope(this->isolate());
+
   Local<Function> iterator = Local<Function>::Cast(info[0]);
   Local<Function> callback = Local<Function>::Cast(info[1]);
 

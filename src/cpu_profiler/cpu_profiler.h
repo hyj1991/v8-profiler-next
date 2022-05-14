@@ -1,6 +1,7 @@
 #ifndef NODE_CPU_PROFILER_
 #define NODE_CPU_PROFILER_
 
+#include "isolate_aware.h"
 #include "nan.h"
 #include "node.h"
 #include "v8-profiler.h"
@@ -20,15 +21,13 @@ class CpuProfiler {
   static NAN_METHOD(SetGenerateType);
 };
 
-class InnerCpuProfiler {
+class InnerCpuProfiler : IsolateAware {
  public:
-  static InnerCpuProfiler* Create(v8::Isolate* isolate);
-  InnerCpuProfiler(v8::Isolate* isolate) : isolate_(isolate) {}
+  InnerCpuProfiler(v8::Isolate* isolate) : IsolateAware(isolate) {}
   int& started_profiles_count() { return started_profiles_count_; }
   int& generate_type() { return generate_type_; }
   uint32_t& sampling_interval() { return sampling_interval_; }
   v8::CpuProfiler*& profiler() { return profiler_; }
-  v8::Isolate* isolate() { return isolate_; }
 
   // methods
   void CheckProfile(v8::CpuProfile*);
@@ -40,7 +39,6 @@ class InnerCpuProfiler {
  private:
   int started_profiles_count_ = 0;
   v8::CpuProfiler* profiler_ = nullptr;
-  v8::Isolate* isolate_;
   uint32_t sampling_interval_ = 0;
   int generate_type_ = 0;
 };
