@@ -10,11 +10,14 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-uint32_t ProfileNode::UIDCounter = 1;
+namespace per_thread {
+thread_local uint32_t UIDCounter = 1;
+}
 
 #if (NODE_MODULE_VERSION >= 42)
-Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
-  Nan::EscapableHandleScope scope;
+Local<Value> ProfileNode::GetLineTicks_(v8::Isolate* isolate,
+                                        const CpuProfileNode* node) {
+  EscapableHandleScope scope(isolate);
 
   uint32_t count = node->GetHitLineCount();
   v8::CpuProfileNode::LineTick* entries =
@@ -42,9 +45,10 @@ Local<Value> ProfileNode::GetLineTicks_(const CpuProfileNode* node) {
 }
 #endif
 
-void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
+void ProfileNode::setNodes_(v8::Isolate* isolate,
+                            const v8::CpuProfileNode* node,
                             std::vector<Local<Object> >& list,
-                            const Nan::EscapableHandleScope& scope) {
+                            const EscapableHandleScope& scope) {
   Local<Object> profile_node = Nan::New<Object>();
   int32_t count = node->GetChildrenCount();
   Local<Array> children = Nan::New<Array>(count);
@@ -59,7 +63,7 @@ void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
            Nan::New<Integer>(node->GetHitCount()));
 #else
   Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(),
-           Nan::New<Integer>(UIDCounter++));
+           Nan::New<Integer>(per_thread::UIDCounter++));
   Nan::Set(
       profile_node, Nan::New<String>("hitCount").ToLocalChecked(),
       Nan::New<Integer>(static_cast<uint32_t>(node->GetSelfSamplesCount())));
@@ -91,7 +95,7 @@ void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
   Nan::Set(call_frame, Nan::New<String>("columnNumber").ToLocalChecked(),
            Nan::New<Integer>(node->GetColumnNumber()));
 #if (NODE_MODULE_VERSION >= 42)
-  Local<Value> lineTicks = GetLineTicks_(node);
+  Local<Value> lineTicks = GetLineTicks_(isolate, node);
   if (!lineTicks->IsNull()) {
     Nan::Set(call_frame, Nan::New<String>("lineTicks").ToLocalChecked(),
              lineTicks);
@@ -107,20 +111,21 @@ void ProfileNode::setNodes_(const v8::CpuProfileNode* node,
   list.push_back(profile_node);
 
   for (int32_t index = 0; index < count; index++) {
-    setNodes_(node->GetChild(index), list, scope);
+    setNodes_(isolate, node->GetChild(index), list, scope);
   }
 }
 
-Local<Value> ProfileNode::New(const CpuProfileNode* node, uint32_t type) {
-  Nan::EscapableHandleScope scope;
+Local<Value> ProfileNode::New(v8::Isolate* isolate, const CpuProfileNode* node,
+                              uint32_t type) {
+  EscapableHandleScope scope(isolate);
 
   if (type == 1) {
     std::vector<Local<Object> > list;
-    setNodes_(node, list, scope);
+    setNodes_(isolate, node, list, scope);
 
-    int size = list.size();
+    uint32_t size = static_cast<uint32_t>(list.size());
     Local<Array> nodes = Nan::New<Array>(size);
-    for (int idx = 0; idx < size; idx++) {
+    for (uint32_t idx = 0; idx < size; idx++) {
       Nan::Set(nodes, idx, list[idx]);
     }
 
@@ -132,7 +137,8 @@ Local<Value> ProfileNode::New(const CpuProfileNode* node, uint32_t type) {
   Local<Object> profile_node = Nan::New<Object>();
   Local<Array> children = Nan::New<Array>(count);
   for (int32_t index = 0; index < count; index++) {
-    Nan::Set(children, index, ProfileNode::New(node->GetChild(index), type));
+    Nan::Set(children, index,
+             ProfileNode::New(isolate, node->GetChild(index), type));
   }
   Nan::Set(profile_node, Nan::New<String>("functionName").ToLocalChecked(),
            node->GetFunctionName());
@@ -159,7 +165,7 @@ Local<Value> ProfileNode::New(const CpuProfileNode* node, uint32_t type) {
   Nan::Set(profile_node, Nan::New<String>("bailoutReason").ToLocalChecked(),
            Nan::New<String>("no reason").ToLocalChecked());
   Nan::Set(profile_node, Nan::New<String>("id").ToLocalChecked(),
-           Nan::New<Integer>(UIDCounter++));
+           Nan::New<Integer>(per_thread::UIDCounter++));
   Nan::Set(
       profile_node, Nan::New<String>("hitCount").ToLocalChecked(),
       Nan::New<Integer>(static_cast<uint32_t>(node->GetSelfSamplesCount())));
@@ -170,7 +176,7 @@ Local<Value> ProfileNode::New(const CpuProfileNode* node, uint32_t type) {
   Nan::Set(profile_node, Nan::New<String>("children").ToLocalChecked(),
            children);
 #if (NODE_MODULE_VERSION >= 42)
-  Local<Value> lineTicks = GetLineTicks_(node);
+  Local<Value> lineTicks = GetLineTicks_(isolate, node);
   if (!lineTicks->IsNull()) {
     Nan::Set(profile_node, Nan::New<String>("lineTicks").ToLocalChecked(),
              lineTicks);

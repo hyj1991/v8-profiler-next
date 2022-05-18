@@ -1,6 +1,8 @@
 #include "cpu_profile.h"
 
 #include "cpu_profile_node.h"
+#include "environment_data.h"
+#include "v8-inner.h"
 
 namespace nodex {
 using v8::Array;
@@ -16,26 +18,31 @@ using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<ObjectTemplate> Profile::profile_template_;
-Nan::Persistent<Object> Profile::profiles;
-uint32_t Profile::uid_counter = -1;
+namespace per_thread {
+thread_local Nan::Persistent<ObjectTemplate> profile_template;
+thread_local Nan::Persistent<Object> profiles;
+}  // namespace per_thread
 
 NAN_METHOD(Profile_EmptyMethod) {}
 
-void Profile::Initialize() {
-  Nan::HandleScope scope;
+void Profile::Initialize(v8::Isolate* isolate) {
+  HandleScope scope(isolate);
 
   Local<FunctionTemplate> f = Nan::New<FunctionTemplate>(Profile_EmptyMethod);
   Local<ObjectTemplate> o = f->InstanceTemplate();
   o->SetInternalFieldCount(1);
   Nan::SetMethod(o, "delete", Profile::Delete);
-  profile_template_.Reset(o);
+  per_thread::profile_template.Reset(o);
 }
 
-NAN_METHOD(Profile::Delete) {
+CPU_PROFILE_METHODS(NAN_CPU_PROFILE_METHOD);
+
+INNER_METHOD(InnerProfile::Delete) {
+  HandleScope scope(this->isolate());
+
   // Local<Object> self = info.This();
   // void* ptr = Nan::GetInternalFieldPointer(self, 0);
-  Local<Object> profiles = Nan::New<Object>(Profile::profiles);
+  Local<Object> profiles = Nan::New<Object>(per_thread::profiles);
   Local<Value> _uid =
       Nan::Get(info.This(), Nan::New<String>("uid").ToLocalChecked())
           .ToLocalChecked();
@@ -44,29 +51,38 @@ NAN_METHOD(Profile::Delete) {
   Nan::Delete(profiles, uid);
 }
 
-Local<Object> Profile::New(const CpuProfile* node, uint32_t type) {
-  Nan::EscapableHandleScope scope;
-
-  if (profile_template_.IsEmpty()) {
-    Profile::Initialize();
+Local<Object> Profile::New(v8::Isolate* isolate, const CpuProfile* node,
+                           uint32_t type) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) return Nan::New<Object>();
+  if (env_data->cpu_profile() == nullptr) {
+    env_data->cpu_profile() =
+        IsolateAware::Create<InnerProfile>(env_data->isolate());
   }
 
-  uid_counter++;
+  EscapableHandleScope scope(isolate);
+
+  if (per_thread::profile_template.IsEmpty()) {
+    Profile::Initialize(isolate);
+  }
+
+  env_data->cpu_profile()->uid_counter()++;
 
   Local<Object> profile;
 #if (NODE_MODULE_VERSION > 0x0040)
-  profile = Nan::New(profile_template_)
+  profile = Nan::New(per_thread::profile_template)
                 ->NewInstance(Nan::GetCurrentContext())
                 .ToLocalChecked();
 #else
-  profile = Nan::New(profile_template_)->NewInstance();
+  profile = Nan::New(per_thread::profile_template)->NewInstance();
 #endif
 
   Nan::SetInternalFieldPointer(profile, 0, const_cast<CpuProfile*>(node));
 
-  const uint32_t uid_length = (((sizeof uid_counter) * 8) + 2) / 3 + 2;
+  const uint32_t uid_length =
+      (((sizeof env_data->cpu_profile()->uid_counter()) * 8) + 2) / 3 + 2;
   char _uid[uid_length];
-  sprintf(_uid, "%d", uid_counter);
+  sprintf(_uid, "%d", env_data->cpu_profile()->uid_counter());
 
   Local<Value> CPU = Nan::New<String>("CPU").ToLocalChecked();
   Local<Value> uid = Nan::New<String>(_uid).ToLocalChecked();
@@ -77,10 +93,10 @@ Local<Object> Profile::New(const CpuProfile* node, uint32_t type) {
 #endif
   if (!title->Length()) {
     char _title[8 + uid_length];
-    sprintf(_title, "Profile %i", uid_counter);
+    sprintf(_title, "Profile %i", env_data->cpu_profile()->uid_counter());
     title = Nan::New<String>(_title).ToLocalChecked();
   }
-  Local<Value> head = ProfileNode::New(node->GetTopDownRoot(), type);
+  Local<Value> head = ProfileNode::New(isolate, node->GetTopDownRoot(), type);
 
   Nan::Set(profile, Nan::New<String>("typeId").ToLocalChecked(), CPU);
   Nan::Set(profile, Nan::New<String>("uid").ToLocalChecked(), uid);
@@ -134,7 +150,7 @@ Local<Object> Profile::New(const CpuProfile* node, uint32_t type) {
   }
 #endif
 
-  Local<Object> profiles = Nan::New<Object>(Profile::profiles);
+  Local<Object> profiles = Nan::New<Object>(per_thread::profiles);
   Nan::Set(profiles, uid, profile);
 
   return scope.Escape(profile);

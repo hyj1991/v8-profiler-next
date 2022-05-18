@@ -11,6 +11,10 @@ using v8::Local;
 using v8::Object;
 using v8::String;
 
+namespace per_thread {
+extern thread_local Nan::Persistent<Object> profiles;
+}
+
 CpuProfiler::CpuProfiler() {}
 CpuProfiler::~CpuProfiler() {}
 
@@ -28,7 +32,7 @@ void CpuProfiler::Initialize(Local<Object> target) {
   Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(),
            profiles);
 
-  Profile::profiles.Reset(profiles);
+  per_thread::profiles.Reset(profiles);
   Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
 }
 
@@ -84,7 +88,7 @@ INNER_METHOD(InnerCpuProfiler::StopProfiling) {
   profile = v8::CpuProfiler::StopProfiling(title);
 #endif
 
-  Local<Object> result = Profile::New(profile, generateType);
+  Local<Object> result = Profile::New(this->isolate(), profile, generateType);
   info.GetReturnValue().Set(result);
 
 #if (NODE_MODULE_VERSION > 0x0039)

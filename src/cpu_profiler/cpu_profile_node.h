@@ -2,6 +2,7 @@
 #define NODE_PROFILE_NODE_
 
 #include "nan.h"
+#include "v8-inner.h"
 #include "v8-profiler.h"
 using namespace std;
 
@@ -9,19 +10,17 @@ namespace nodex {
 
 class ProfileNode {
  public:
-  static v8::Local<v8::Value> New(const v8::CpuProfileNode* node,
+  static v8::Local<v8::Value> New(v8::Isolate* isolate,
+                                  const v8::CpuProfileNode* node,
                                   uint32_t type);
-  static uint32_t UIDCounter;
 
  private:
-  static void setNodes_(const v8::CpuProfileNode* node,
-                        v8::Local<v8::Array> nodes, int* index);
-  static void getTotalCount_(const v8::CpuProfileNode* node, int* total);
-  static void setNodes_(const v8::CpuProfileNode* node,
+  static void setNodes_(v8::Isolate* isolate, const v8::CpuProfileNode* node,
                         std::vector<v8::Local<v8::Object> >& list,
-                        const Nan::EscapableHandleScope& scope);
+                        const EscapableHandleScope& scope);
 #if (NODE_MODULE_VERSION >= 42)
-  static v8::Local<v8::Value> GetLineTicks_(const v8::CpuProfileNode* node);
+  static v8::Local<v8::Value> GetLineTicks_(v8::Isolate* isolate,
+                                            const v8::CpuProfileNode* node);
 #endif
 };
 
