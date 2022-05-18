@@ -12,10 +12,12 @@ using v8::Object;
 using v8::String;
 
 namespace per_thread {
-extern thread_local Nan::Persistent<v8::Object> profiles;
+extern thread_local Nan::Persistent<Object> profiles;
 }
 
-// class CpuProfiler
+CpuProfiler::CpuProfiler() {}
+CpuProfiler::~CpuProfiler() {}
+
 void CpuProfiler::Initialize(Local<Object> target) {
   HandleScope scope(target->GetIsolate());
 
@@ -34,143 +36,79 @@ void CpuProfiler::Initialize(Local<Object> target) {
   Nan::Set(target, Nan::New<String>("cpu").ToLocalChecked(), cpuProfiler);
 }
 
-NAN_METHOD(CpuProfiler::SetGenerateType) {
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
-  if (env_data == nullptr) return;
+CPU_PROFILER_METHODS(NAN_CPU_PROFILER_METHOD);
 
-  if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() =
-        IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
-  }
-
-  {
-    HandleScope scope(env_data->isolate());
-    env_data->cpu_profiler()->generate_type() =
-        Nan::To<uint32_t>(info[0]).ToChecked();
-  }
+INNER_METHOD(InnerCpuProfiler::SetGenerateType) {
+  HandleScope scope(this->isolate());
+  generateType = Nan::To<uint32_t>(info[0]).ToChecked();
 }
 
-NAN_METHOD(CpuProfiler::SetSamplingInterval) {
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
-  if (env_data == nullptr) return;
+INNER_METHOD(InnerCpuProfiler::StartProfiling) {
+  HandleScope scope(this->isolate());
 
-  if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() =
-        IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
-  }
+  Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
 
-  {
-    HandleScope scope(env_data->isolate());
-    env_data->cpu_profiler()->SetSamplingInterval(
-        Nan::To<uint32_t>(info[0]).ToChecked());
-  }
-}
-
-NAN_METHOD(CpuProfiler::StartProfiling) {
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
-  if (env_data == nullptr) return;
-
-  if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() =
-        IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
-  }
-
-  {
-    HandleScope scope(env_data->isolate());
-    Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
-
-#if (NODE_MODULE_VERSION > 0x000B)
-    bool recsamples = Nan::To<bool>(info[1]).ToChecked();
-    env_data->cpu_profiler()->StartProfiling(title, recsamples);
-#else
-    env_data->cpu_profiler()->StartProfiling(title);
-#endif
-  }
-}
-
-NAN_METHOD(CpuProfiler::StopProfiling) {
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
-  if (env_data == nullptr) return;
-
-  if (env_data->cpu_profiler() == nullptr) {
-    env_data->cpu_profiler() =
-        IsolateAware::Create<InnerCpuProfiler>(env_data->isolate());
-  }
-
-  {
-    HandleScope scope(env_data->isolate());
-    Local<String> title = Nan::EmptyString();
-    if (info.Length()) {
-      if (info[0]->IsString()) {
-        title = Nan::To<String>(info[0]).ToLocalChecked();
-      } else if (!info[0]->IsUndefined()) {
-        return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
-      }
-    }
-    CpuProfile* profile = env_data->cpu_profiler()->StopProfiling(title);
-    Profile format(env_data->isolate());
-    Local<Object> result =
-        format.New(profile, env_data->cpu_profiler()->generate_type());
-    env_data->cpu_profiler()->CheckProfile(profile);
-    info.GetReturnValue().Set(result);
-  }
-}
-
-// class InnerCpuProfiler
-void InnerCpuProfiler::CheckProfile(v8::CpuProfile* profile) {
 #if (NODE_MODULE_VERSION > 0x0039)
-  profile->Delete();
-  --this->started_profiles_count();
-  if (this->started_profiles_count() == 0) {
-    this->profiler()->Dispose();
-    this->profiler() = nullptr;
+  bool recsamples = Nan::To<bool>(info[1]).ToChecked();
+  if (!started_profiles_count_) {
+    cpu_profiler_ = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
   }
-#endif
-}
-
-void InnerCpuProfiler::SetGenerateType(int type) {
-  this->generate_type() = type;
-}
-
-void InnerCpuProfiler::SetSamplingInterval(uint32_t interval) {
-#if (NODE_MODULE_VERSION > 0x0039)
-  this->sampling_interval() = interval;
+  ++started_profiles_count_;
+  if (sampling_interval_) {
+    cpu_profiler_->SetSamplingInterval(sampling_interval_);
+  }
+  cpu_profiler_->StartProfiling(title, recsamples);
 #elif (NODE_MODULE_VERSION > 0x000B)
-  this->isolate()->GetCpuProfiler()->SetSamplingInterval(interval);
-#endif
-}
-
-void InnerCpuProfiler::StartProfiling(v8::Local<v8::String> title,
-                                      bool recsamples) {
-#if (NODE_MODULE_VERSION > 0x0039)
-  if (this->profiler() == nullptr) {
-    this->profiler() = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
-  }
-  this->started_profiles_count()++;
-  if (this->sampling_interval() != 0) {
-    this->profiler()->SetSamplingInterval(this->sampling_interval());
-  }
-  this->profiler()->StartProfiling(title, recsamples);
-#elif (NODE_MODULE_VERSION > 0x000B)
-  this->isolate()->GetCpuProfiler()->StartProfiling(title, recsamples);
+  bool recsamples = Nan::To<bool>(info[1]).ToChecked();
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title,
+                                                              recsamples);
 #else
   v8::CpuProfiler::StartProfiling(title);
 #endif
 }
 
-v8::CpuProfile* InnerCpuProfiler::StopProfiling(v8::Local<v8::String> title) {
-  CpuProfile* profile = nullptr;
-#if (NODE_MODULE_VERSION > 0x0039)
-  if (this->profiler() == nullptr) {
-    return nullptr;
+INNER_METHOD(InnerCpuProfiler::StopProfiling) {
+  HandleScope scope(this->isolate());
+
+  CpuProfile* profile;
+  Local<String> title = Nan::EmptyString();
+  if (info.Length()) {
+    if (info[0]->IsString()) {
+      title = Nan::To<String>(info[0]).ToLocalChecked();
+    } else if (!info[0]->IsUndefined()) {
+      return Nan::ThrowTypeError("Wrong argument [0] type (wait String)");
+    }
   }
-  profile = this->profiler()->StopProfiling(title);
+
+#if (NODE_MODULE_VERSION > 0x0039)
+  profile = cpu_profiler_->StopProfiling(title);
 #elif (NODE_MODULE_VERSION > 0x000B)
-  profile = this->isolate()->GetCpuProfiler()->StopProfiling(title);
+  profile = v8::Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
 #else
   profile = v8::CpuProfiler::StopProfiling(title);
 #endif
-  return profile;
+
+  Local<Object> result = Profile::New(this->isolate(), profile, generateType);
+  info.GetReturnValue().Set(result);
+
+#if (NODE_MODULE_VERSION > 0x0039)
+  profile->Delete();
+  --started_profiles_count_;
+  if (!started_profiles_count_) {
+    cpu_profiler_->Dispose();
+    cpu_profiler_ = nullptr;
+  }
+#endif
 }
 
+INNER_METHOD(InnerCpuProfiler::SetSamplingInterval) {
+  HandleScope scope(this->isolate());
+
+#if (NODE_MODULE_VERSION > 0x0039)
+  sampling_interval_ = Nan::To<uint32_t>(info[0]).ToChecked();
+#elif (NODE_MODULE_VERSION > 0x000B)
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(
+      Nan::To<uint32_t>(info[0]).ToChecked());
+#endif
+}
 }  // namespace nodex

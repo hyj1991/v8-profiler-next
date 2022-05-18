@@ -7,11 +7,11 @@
 
 namespace nodex {
 
-#define SAMPLING_HEAP_PROFILE_METHODS(V) \
-  V(StartSamplingHeapProfiling);         \
+#define SAMPLING_HEAP_PROFILER_METHODS(V) \
+  V(StartSamplingHeapProfiling);          \
   V(StopSamplingHeapProfiling);
 
-#define NAN_SAMPLING_HEAP_PROFILE_METHOD(func)         \
+#define NAN_SAMPLING_HEAP_PROFILER_METHOD(func)        \
   CALL_NAN_METHOD(heap_profiler, SamplingHeapProfiler, \
                   InnerSamplingHeapProfiler, func)
 
@@ -22,13 +22,13 @@ class SamplingHeapProfiler {
   virtual ~SamplingHeapProfiler();
 
  protected:
-  SAMPLING_HEAP_PROFILE_METHODS(static NAN_METHOD);
+  SAMPLING_HEAP_PROFILER_METHODS(static NAN_METHOD);
 };
 
 class InnerSamplingHeapProfiler : IsolateAware {
  public:
   InnerSamplingHeapProfiler(v8::Isolate* isolate) : IsolateAware(isolate){};
-  SAMPLING_HEAP_PROFILE_METHODS(INNER_METHOD);
+  SAMPLING_HEAP_PROFILER_METHODS(INNER_METHOD);
 };
 
 }  // namespace nodex

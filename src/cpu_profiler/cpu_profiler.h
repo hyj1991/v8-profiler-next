@@ -7,6 +7,16 @@
 #include "v8-profiler.h"
 
 namespace nodex {
+
+#define CPU_PROFILER_METHODS(V) \
+  V(StartProfiling);            \
+  V(StopProfiling);             \
+  V(SetSamplingInterval);       \
+  V(SetGenerateType);
+
+#define NAN_CPU_PROFILER_METHOD(func) \
+  CALL_NAN_METHOD(cpu_profiler, CpuProfiler, InnerCpuProfiler, func)
+
 class CpuProfiler {
  public:
   static void Initialize(v8::Local<v8::Object> target);
@@ -15,32 +25,22 @@ class CpuProfiler {
   virtual ~CpuProfiler();
 
  protected:
-  static NAN_METHOD(StartProfiling);
-  static NAN_METHOD(StopProfiling);
-  static NAN_METHOD(SetSamplingInterval);
-  static NAN_METHOD(SetGenerateType);
+  CPU_PROFILER_METHODS(static NAN_METHOD);
 };
 
 class InnerCpuProfiler : IsolateAware {
  public:
-  InnerCpuProfiler(v8::Isolate* isolate) : IsolateAware(isolate) {}
-  int& started_profiles_count() { return started_profiles_count_; }
-  int& generate_type() { return generate_type_; }
-  uint32_t& sampling_interval() { return sampling_interval_; }
-  v8::CpuProfiler*& profiler() { return profiler_; }
-
-  // methods
-  void CheckProfile(v8::CpuProfile*);
-  void SetGenerateType(int type);
-  void SetSamplingInterval(uint32_t interval);
-  void StartProfiling(v8::Local<v8::String> title, bool recsamples = false);
-  v8::CpuProfile* StopProfiling(v8::Local<v8::String> title);
+  InnerCpuProfiler(v8::Isolate* isolate) : IsolateAware(isolate){};
+  CPU_PROFILER_METHODS(INNER_METHOD);
 
  private:
+#if (NODE_MODULE_VERSION > 0x0039)
   int started_profiles_count_ = 0;
-  v8::CpuProfiler* profiler_ = nullptr;
+  v8::CpuProfiler* cpu_profiler_ = nullptr;
   uint32_t sampling_interval_ = 0;
-  int generate_type_ = 0;
+#endif
+
+  int generateType = 0;
 };
 }  // namespace nodex
 

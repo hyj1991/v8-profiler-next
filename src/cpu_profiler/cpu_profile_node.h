@@ -10,21 +10,17 @@ namespace nodex {
 
 class ProfileNode {
  public:
-  ProfileNode(v8::Isolate* isolate) : isolate_(isolate) {}
-  v8::Local<v8::Value> New(const v8::CpuProfileNode* node, uint32_t type);
-  v8::Isolate* isolate() { return isolate_; }
+  static v8::Local<v8::Value> New(v8::Isolate* isolate,
+                                  const v8::CpuProfileNode* node,
+                                  uint32_t type);
 
  private:
-  v8::Isolate* isolate_;
-  uint32_t UIDCounter = 1;
-  void setNodes_(const v8::CpuProfileNode* node, v8::Local<v8::Array> nodes,
-                 int* index);
-  void getTotalCount_(const v8::CpuProfileNode* node, int* total);
-  void setNodes_(const v8::CpuProfileNode* node,
-                 std::vector<v8::Local<v8::Object> >& list,
-                 const EscapableHandleScope& scope);
+  static void setNodes_(v8::Isolate* isolate, const v8::CpuProfileNode* node,
+                        std::vector<v8::Local<v8::Object> >& list,
+                        const EscapableHandleScope& scope);
 #if (NODE_MODULE_VERSION >= 42)
-  v8::Local<v8::Value> GetLineTicks_(const v8::CpuProfileNode* node);
+  static v8::Local<v8::Value> GetLineTicks_(v8::Isolate* isolate,
+                                            const v8::CpuProfileNode* node);
 #endif
 };
 
