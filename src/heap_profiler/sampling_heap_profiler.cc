@@ -79,7 +79,7 @@ void SamplingHeapProfiler::Initialize(Local<Object> target) {
            samplingHeapProfile);
 }
 
-SAMPLING_HEAP_PROFILE_METHODS(NAN_SAMPLING_HEAP_PROFILE_METHOD);
+SAMPLING_HEAP_PROFILER_METHODS(NAN_SAMPLING_HEAP_PROFILER_METHOD);
 
 INNER_METHOD(InnerSamplingHeapProfiler::StartSamplingHeapProfiling) {
   HandleScope scope(this->isolate());
