@@ -56,7 +56,7 @@ Get `.cpuprofile` in `worker_threads`:
 
 const fs = require('fs');
 const path = require('path');
-const v8Profiler = require('./');
+const v8Profiler = require('v8-profiler-next');
 const workerThreads = require('worker_threads');
 
 v8Profiler.setGenerateType(1);
@@ -113,7 +113,7 @@ Get `.heapsnapshot` in `worker_threads`:
 
 const fs = require('fs');
 const path = require('path');
-const v8Profiler = require('./');
+const v8Profiler = require('v8-profiler-next');
 const workerThreads = require('worker_threads');
 
 function createSnapshot(filename) {
@@ -172,7 +172,7 @@ Get `.heapprofile` in `worker_threads`:
 
 const fs = require('fs');
 const path = require('path');
-const v8Profiler = require('./');
+const v8Profiler = require('v8-profiler-next');
 const workerThreads = require('worker_threads');
 
 if (workerThreads.isMainThread) {
