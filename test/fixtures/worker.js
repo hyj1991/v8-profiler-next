@@ -14,14 +14,16 @@ function createProfile(filename, func, ...args) {
 }
 
 function createSnapshot(filename) {
-  const snapshot = v8Profiler.takeSnapshot();
-  const file = path.join(__dirname, filename);
-  const transform = snapshot.export();
-  transform.pipe(fs.createWriteStream(file));
-  transform.on('finish', snapshot.delete.bind(snapshot));
+  return new Promise(resolve => {
+    const snapshot = v8Profiler.takeSnapshot();
+    const file = path.join(__dirname, filename);
+    const transform = snapshot.export();
+    transform.pipe(fs.createWriteStream(file));
+    transform.on('finish', () => snapshot.delete() && resolve());
+  });
 }
 
-function main() {
+async function main() {
   if (!canIUseWorkerThreads) {
     return;
   }
@@ -33,7 +35,7 @@ function main() {
     });
 
     // create heapsnapshot in main thread
-    createSnapshot('main.heapsnapshot');
+    await createSnapshot('main.heapsnapshot');
 
     v8Profiler.startProfiling('main', true);
     v8Profiler.startSamplingHeapProfiling();
@@ -50,8 +52,11 @@ function main() {
     v8Profiler.startProfiling('worker_threads', true);
     v8Profiler.startSamplingHeapProfiling();
     const start = Date.now();
-    const array = [];
-    while (Date.now() - start < 2000) { array.push(new Array(1e3).fill('*')); }
+    const array = globalThis.worker_array = [];
+    while (Date.now() - start < 2000) {
+      array.push(new Array(5e5).fill('*').join(''));
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
 
     // create cpu profile in worker_threads
     createProfile('worker_threads.cpuprofile', 'stopProfiling', 'worker_threads');
@@ -60,7 +65,7 @@ function main() {
     createProfile('worker_threads.heapprofile', 'stopSamplingHeapProfiling');
 
     // create heapsnapshot in worker_threads
-    createSnapshot('worker_threads.heapsnapshot');
+    await createSnapshot('worker_threads.heapsnapshot');
   }
 }
 

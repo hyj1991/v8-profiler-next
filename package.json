@@ -1,6 +1,6 @@
 {
   "name": "v8-profiler-next",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "test": "node scripts/test.js",
     "test-single": "mocha --timeout 10000",
     "build": "node-gyp rebuild",
-    "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\""
+    "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\"",
+    "stability": "node scripts/stability.js"
   },
   "repository": {
     "type": "git",
