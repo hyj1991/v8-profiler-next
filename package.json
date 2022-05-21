@@ -43,8 +43,9 @@
   },
   "homepage": "https://github.com/hyj1991/v8-profiler-next#readme",
   "files": [
-    "src",
     "lib",
+    "scripts",
+    "src",
     "binding.gyp",
     "dispatch.js",
     "index.d.ts",
