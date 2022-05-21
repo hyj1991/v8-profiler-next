@@ -1,4 +1,12 @@
 {
+  'includes': [
+    'config.gypi'
+  ],
+
+  'variables': {
+    'action_after_build': 'false'
+  },
+
   'targets': [
     {
       'target_name': 'profiler',
@@ -17,8 +25,8 @@
         'src/environment_data.cc'
       ],
       'include_dirs' : [
-        "src",
-        "<!(node -e \"require('nan')\")"
+        'src',
+        '<!(node -e "require(\'nan\')")'
       ],
       'conditions':[
         ['OS == "linux"', {
@@ -35,6 +43,27 @@
           }
         }],
       ]
-    }
-  ]
+    },
+  ],
+
+  'conditions': [
+    [
+      'action_after_build == "true"',
+      {
+        'targets': [
+          {
+            'target_name': 'action_after_build',
+            'type': 'none',
+            'dependencies': ['<(module_name)'],
+            'copies': [
+              {
+                'files': ['<(PRODUCT_DIR)/<(module_name).node'],
+                'destination': '<(module_path)'
+              }
+            ]
+          },
+        ]
+      }
+    ]
+  ],
 }

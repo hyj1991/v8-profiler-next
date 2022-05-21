@@ -28,6 +28,8 @@ async function main() {
     return;
   }
 
+  const globalThis = global;
+
   const workerThreads = require('worker_threads');
   if (workerThreads.isMainThread) {
     const w = new workerThreads.Worker(__filename, {

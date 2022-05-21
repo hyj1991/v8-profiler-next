@@ -9,6 +9,12 @@ const NODE_V_5 = /^v5\./.test(process.version);
 
 describe('v8-profiler', function () {
   describe('CPU', function () {
+    function deleteAllProfiles() {
+      Object.keys(profiler.profiles).forEach(function (key) {
+        profiler.profiles[key].delete();
+      });
+    }
+
     after(deleteAllProfiles);
 
     describe('Profiler', function () {
@@ -37,7 +43,7 @@ describe('v8-profiler', function () {
       });
 
       it('should record samples, if started with recsamples argument', function () {
-        if (NODE_V_010) return;
+        if (NODE_V_010) { return; }
 
         profiler.startProfiling(true);
         const profile = profiler.stopProfiling();
@@ -67,7 +73,7 @@ describe('v8-profiler', function () {
         expect(profile.timeDeltas.length > 0).to.equal(true);
         expect(!profile.timestamps).to.equal(true);
       });
-    })
+    });
 
     describe('Profile', function () {
       it('should export itself with callback', function () {
@@ -93,15 +99,15 @@ describe('v8-profiler', function () {
         });
       });
     });
-
-    function deleteAllProfiles() {
-      Object.keys(profiler.profiles).forEach(function (key) {
-        profiler.profiles[key].delete();
-      });
-    }
   });
 
   describe('HEAP', function () {
+    function deleteAllSnapshots() {
+      Object.keys(profiler.snapshots).forEach(function (key) {
+        profiler.snapshots[key].delete();
+      });
+    }
+
     after(deleteAllSnapshots);
 
     describe('Profiler', function () {
@@ -139,17 +145,17 @@ describe('v8-profiler', function () {
 
       it('should return id for object in getHeapObjectId', function () {
         const obj = {};
-        const snapshot = profiler.takeSnapshot();
+        profiler.takeSnapshot();
         expect(profiler.getHeapObjectId(obj)).to.be.gt(0);
       });
 
       it('should return id for undefined param in getHeapObjectId', function () {
-        const snapshot = profiler.takeSnapshot();
+        profiler.takeSnapshot();
         expect(profiler.getHeapObjectId(undefined)).to.be.gt(0);
       });
 
       it('should return undefined for wrong params in getHeapObjectId', function () {
-        const snapshot = profiler.takeSnapshot();
+        profiler.takeSnapshot();
         expect(profiler.getHeapObjectId()).to.be.equal(undefined);
       });
     });
@@ -163,7 +169,7 @@ describe('v8-profiler', function () {
         const oldSnapshotsLength = Object.keys(profiler.snapshots).length;
         snapshot.delete();
 
-        expect(Object.keys(profiler.snapshots).length == oldSnapshotsLength - 1).to.equal(true);
+        expect(Object.keys(profiler.snapshots).length === oldSnapshotsLength - 1).to.equal(true);
         expect(profiler.snapshots[uid]).to.be.equal(undefined);
       });
 
@@ -197,7 +203,7 @@ describe('v8-profiler', function () {
 
         snapshot.export(function (err, result) {
           expect(!err);
-          expect(typeof result == 'string');
+          expect(typeof result === 'string');
           done();
         });
       });
@@ -232,12 +238,6 @@ describe('v8-profiler', function () {
         });
       });
     });
-
-    function deleteAllSnapshots() {
-      Object.keys(profiler.snapshots).forEach(function (key) {
-        profiler.snapshots[key].delete();
-      });
-    }
   });
 
   describe('SAMPLING HEAP', function () {
@@ -262,7 +262,7 @@ describe('v8-profiler', function () {
       });
 
       it('has expected structure', function () {
-        if (NODE_V_4 || NODE_V_5) return;
+        if (NODE_V_4 || NODE_V_5) { return; }
         profiler.startSamplingHeapProfiling();
         const profile = profiler.stopSamplingHeapProfiling();
         const samplingHeapProperties = ['head'];
