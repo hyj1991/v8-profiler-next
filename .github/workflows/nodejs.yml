@@ -1,49 +1,31 @@
 name: Continuous integration
 on:
   push:
-    branches: [ '**' ]
+    branches: ["**"]
   pull_request:
-    branches: [ '**' ]
+    branches: ["**"]
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 jobs:
-  ubuntu:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        node-version: [ 4, 6, 8, 10, 12, 14, 16, 18 ]
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node-version: [8, 10, 12, 14, 16, 18]
+        fail-fast: false
     steps:
-    - name: Checkout Git Source
-      uses: actions/checkout@master
+      - name: Checkout Git Source
+        uses: actions/checkout@master
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
 
-    - name: Install Dependencies
-      run: npm i
+      - name: Install Dependencies
+        run: npm ci
 
-    - name: Continuous integration
-      run: npm run test
-  macos:
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [ 8, 10, 12, 14, 16, 18 ]
-    steps:
-    - name: Checkout Git Source
-      uses: actions/checkout@master
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Install Dependencies
-      run: npm i
-
-    - name: Continuous integration
-      run: npm run test
+      - name: Continuous integration
+        run: npm test
