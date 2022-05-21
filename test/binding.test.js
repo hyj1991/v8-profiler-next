@@ -1,11 +1,9 @@
 'use strict';
 
+const binding = require('../lib/binding');
 const expect = require('chai').expect;
-const path = require('path');
-const binding = require(path.join(__dirname, '../build/Release/profiler.node'));
 
 const NODE_V_010 = /^v0\.10\.\d+$/.test(process.version);
-const NODE_V_3 = /^v3\./.test(process.version);
 
 describe('binding', function () {
   describe('Profiler container', function () {
@@ -19,9 +17,15 @@ describe('binding', function () {
   });
 
   describe('CPU', function () {
-    after(deleteAllProfiles);
-
     const cpu = binding.cpu;
+
+    function deleteAllProfiles() {
+      cpu.profiles.slice().forEach(function (profile) {
+        profile.delete();
+      });
+    }
+
+    after(deleteAllProfiles);
 
     describe('Profiler', function () {
 
@@ -108,18 +112,18 @@ describe('binding', function () {
         });
       });
     });
-
-    function deleteAllProfiles() {
-      cpu.profiles.slice().forEach(function (profile) {
-        profile.delete();
-      });
-    }
   });
 
   describe('HEAP', function () {
-    after(deleteAllSnapshots);
-
     const heap = binding.heap;
+
+    function deleteAllSnapshots() {
+      Object.keys(binding.heap.snapshots).forEach(function (key) {
+        binding.heap.snapshots[key].delete();
+      });
+    }
+
+    after(deleteAllSnapshots);
 
     describe('Profiler', function () {
       it('has expected structure', function () {
@@ -150,11 +154,5 @@ describe('binding', function () {
         });
       });
     });
-
-    function deleteAllSnapshots() {
-      Object.keys(binding.heap.snapshots).forEach(function (key) {
-        binding.heap.snapshots[key].delete();
-      });
-    }
   });
 });
