@@ -3,7 +3,6 @@ node_modules
 .idea
 build
 npm-debug.log
-package-lock.json
 index_prod.html
 coverage
 tmp
