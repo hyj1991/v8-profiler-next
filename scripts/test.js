@@ -2,7 +2,7 @@
 
 const cp = require('child_process');
 const path = require('path');
-const nodeVersion = process.versions.node;
+const nodeVersionLessThan = require('../lib/utils').nodeVersionLessThan;
 
 function exec(cmd) {
   cp.execSync(cmd, {
@@ -11,8 +11,7 @@ function exec(cmd) {
   });
 }
 
-const tags = nodeVersion.split('.');
-if (tags[0] < 8) {
+if (nodeVersionLessThan(8)) {
   exec('npm run test-old');
 } else {
   exec('npm run test-new');
