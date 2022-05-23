@@ -54,7 +54,7 @@ exports = module.exports = versions => {
       change = `nvm use ${nvmNodeVersion}`;
     }
 
-    const install = 'npm install';
+    const install = 'npm install --no-audit';
     const build = `${npmBin} run dep`;
     const pack = 'npx node-pre-gyp package && npx node-pre-gyp testpackage';
     const copy = `${npmBin} run copy`;

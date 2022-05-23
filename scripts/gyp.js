@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const execCmd = require('./build').execCmd;
-const nodeVersion = process.versions.node;
+const nodeVersionLessThan = require('../lib/utils').nodeVersionLessThan;
 
 function writeConfig(config) {
   const options = JSON.stringify(config, null, 2);
@@ -13,14 +13,13 @@ function writeConfig(config) {
 }
 
 module.exports = function (oldCmd, newCmd) {
-  const tags = nodeVersion.split('.');
   const options = {
     variables: {
       action_after_build: 'false'
     }
   };
 
-  if (tags[0] < 12) {
+  if (nodeVersionLessThan(12)) {
     writeConfig(options);
     execCmd(oldCmd);
   } else {
