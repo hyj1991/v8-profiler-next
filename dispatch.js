@@ -171,11 +171,11 @@ let profiler = {
       control = function noop() { };
     }
 
-    name = '' + name;
+    name = name ? '' + name : '';
 
     let snapshot = binding.heap.takeSnapshot(name, control);
     snapshot.__proto__ = Snapshot.prototype;
-    snapshot.title = name;
+    snapshot.title = name ? name : snapshot.title;
     return snapshot;
   },
 
