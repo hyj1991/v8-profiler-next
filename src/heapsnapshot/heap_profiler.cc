@@ -30,7 +30,11 @@ class ActivityControlAdapter : public ActivityControl {
   ActivityControlAdapter(Local<Value> progress)
       : reportProgress(Local<Function>::Cast(progress)), abort(Nan::False()) {}
 
+#if NODE_MODULE_VERSION >= NODE_18_0_MODULE_VERSION
+  ControlOption ReportProgressValue(uint32_t done, uint32_t total) {
+#else
   ControlOption ReportProgressValue(int done, int total) {
+#endif
     Local<Value> argv[2] = {Nan::New<Integer>(done), Nan::New<Integer>(total)};
 
     TryCatch try_catch;
