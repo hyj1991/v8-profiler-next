@@ -1,8 +1,14 @@
 'use strict';
 
-const binding = require('./lib/binding');
 const Stream = require('stream').Stream;
 const inherits = require('util').inherits;
+const binding = require('./lib/binding');
+const workerThreads = require('./lib/worker_threads');
+
+binding.setup({
+  debug: !!process.env.V8_PROFILER_DEBUG,
+  thread_id: workerThreads.threadId,
+});
 
 function nodes(snapshot) {
   let n = snapshot.nodesCount, i, nodes = [];

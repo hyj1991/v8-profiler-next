@@ -3,6 +3,7 @@
 
 #include "nan.h"
 
+namespace nodex {
 #define INNER_METHOD(func) \
   void func(const Nan::FunctionCallbackInfo<v8::Value>& info)
 
@@ -23,7 +24,6 @@
   }                                                                         \
   env_data->property()->func(info);
 
-namespace nodex {
 class IsolateAware {
  public:
   template <typename T>
