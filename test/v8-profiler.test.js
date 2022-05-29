@@ -65,6 +65,7 @@ describe('v8-profiler', function () {
     describe('CPU', function () {
       it('should generate new formate when setGenerateType(1)', function () {
         profiler.setGenerateType(1);
+        profiler.setProfilesCleanupLimit(1000);
         profiler.startProfiling(true);
         const profile = profiler.stopProfiling();
 

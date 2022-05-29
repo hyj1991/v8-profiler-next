@@ -3,7 +3,7 @@
 const { canIUseWorkerThreads } = require('../../lib/worker_threads');
 const fs = require('fs');
 const path = require('path');
-const v8Profiler = require(path.join(__dirname, '../../'));
+const v8Profiler = require('../../');
 v8Profiler.setGenerateType(1);
 
 function createProfile(filename, func, ...args) {
@@ -51,6 +51,7 @@ async function main() {
       console.log(JSON.stringify({ code }));
     });
   } else {
+    v8Profiler.setProfilesCleanupLimit(1000);
     v8Profiler.startProfiling('worker_threads', true);
     v8Profiler.startSamplingHeapProfiling();
     const start = Date.now();

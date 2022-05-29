@@ -54,6 +54,7 @@ describe('binding', function () {
 
       it('has expected structure with generateType 1', function () {
         cpu.setGenerateType(1);
+        cpu.setProfilesCleanupLimit([]);
         cpu.startProfiling('', true);
         const profile = cpu.stopProfiling();
         const properties = NODE_V_010 ?
@@ -91,6 +92,7 @@ describe('binding', function () {
     describe('Profile Nodes', function () {
       it('has expected structure', function () {
         cpu.setGenerateType(1);
+        cpu.setProfilesCleanupLimit(null);
         cpu.startProfiling('P');
         const profile = cpu.stopProfiling('P');
         const mainProps = ['id', 'hitCount', 'callFrame', 'children'];

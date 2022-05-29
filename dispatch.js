@@ -232,6 +232,14 @@ let profiler = {
     }
   },
 
+  setProfilesCleanupLimit: function (limit) {
+    if (!isNaN(limit)) {
+      binding.cpu.setProfilesCleanupLimit(Number(limit));
+    } else {
+      console.error(`limit should be number.`);
+    }
+  },
+
   startProfiling: function (name, recsamples) {
     if (activeProfiles.length === 0 && typeof process._startProfilerIdleNotifier === 'function') {
       process._startProfilerIdleNotifier();
