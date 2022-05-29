@@ -12,7 +12,8 @@ namespace nodex {
   V(StartProfiling);            \
   V(StopProfiling);             \
   V(SetSamplingInterval);       \
-  V(SetGenerateType);
+  V(SetGenerateType);           \
+  V(SetProfilesCleanupLimit);
 
 #define NAN_CPU_PROFILER_METHOD(func) \
   CALL_NAN_METHOD(cpu_profiler, CpuProfiler, InnerCpuProfiler, func)
@@ -36,6 +37,8 @@ class InnerCpuProfiler : IsolateAware {
  private:
 #if (NODE_MODULE_VERSION > 0x0039)
   int started_profiles_count_ = 0;
+  int profiles_since_last_cleanup_ = 0;
+  int profiles_clean_limit_ = 0;
   v8::CpuProfiler* cpu_profiler_ = nullptr;
   uint32_t sampling_interval_ = 0;
 #endif

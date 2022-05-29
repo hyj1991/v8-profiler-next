@@ -2,6 +2,7 @@
 
 #include "cpu_profile.h"
 #include "environment_data.h"
+#include "utils-inl.h"
 #include "v8-inner.h"
 
 namespace nodex {
@@ -29,6 +30,8 @@ void CpuProfiler::Initialize(Local<Object> target) {
   Nan::SetMethod(cpuProfiler, "setSamplingInterval",
                  CpuProfiler::SetSamplingInterval);
   Nan::SetMethod(cpuProfiler, "setGenerateType", CpuProfiler::SetGenerateType);
+  Nan::SetMethod(cpuProfiler, "setProfilesCleanupLimit",
+                 CpuProfiler::SetProfilesCleanupLimit);
   Nan::Set(cpuProfiler, Nan::New<String>("profiles").ToLocalChecked(),
            profiles);
 
@@ -43,6 +46,13 @@ INNER_METHOD(InnerCpuProfiler::SetGenerateType) {
   generateType = Nan::To<uint32_t>(info[0]).ToChecked();
 }
 
+INNER_METHOD(InnerCpuProfiler::SetProfilesCleanupLimit) {
+#if (NODE_MODULE_VERSION > 0x0039)
+  HandleScope scope(this->isolate());
+  profiles_clean_limit_ = Nan::To<uint32_t>(info[0]).ToChecked();
+#endif
+}
+
 INNER_METHOD(InnerCpuProfiler::StartProfiling) {
   HandleScope scope(this->isolate());
 
@@ -50,10 +60,11 @@ INNER_METHOD(InnerCpuProfiler::StartProfiling) {
 
 #if (NODE_MODULE_VERSION > 0x0039)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
-  if (!started_profiles_count_) {
+  if (!cpu_profiler_) {
     cpu_profiler_ = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
   }
   ++started_profiles_count_;
+  ++profiles_since_last_cleanup_;
   if (sampling_interval_) {
     cpu_profiler_->SetSamplingInterval(sampling_interval_);
   }
@@ -94,9 +105,15 @@ INNER_METHOD(InnerCpuProfiler::StopProfiling) {
 #if (NODE_MODULE_VERSION > 0x0039)
   profile->Delete();
   --started_profiles_count_;
-  if (!started_profiles_count_) {
+  if (!started_profiles_count_ &&
+      profiles_since_last_cleanup_ > profiles_clean_limit_) {
+    logger(this->isolate(), "clear cpuprofiler: %d\n", profiles_clean_limit_);
     cpu_profiler_->Dispose();
     cpu_profiler_ = nullptr;
+    profiles_since_last_cleanup_ = 0;
+  } else {
+    logger(this->isolate(), "not clear cpuprofiler: %d, %d\n",
+           started_profiles_count_, profiles_clean_limit_);
   }
 #endif
 }

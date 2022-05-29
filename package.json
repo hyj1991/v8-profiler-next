@@ -21,6 +21,7 @@
     "pack": "node scripts/clean.js && node-pre-gyp package && node-pre-gyp testpackage && npm run copy",
     "test-old": "mocha test/*.test.js --exclude test/worker.test.js --timeout 10000",
     "test-new": "mocha test/*.test.js --timeout 10000",
+    "debug-test": "V8_PROFILER_DEBUG=* node scripts/test.js",
     "test": "node scripts/test.js",
     "test-single": "mocha --timeout 10000",
     "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\"",

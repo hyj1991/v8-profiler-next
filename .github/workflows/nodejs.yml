@@ -26,7 +26,7 @@ jobs:
       run: npm i
 
     - name: Continuous integration
-      run: npm run test
+      run: npm run debug-test
   macos:
     runs-on: macos-latest
     strategy:
@@ -46,4 +46,4 @@ jobs:
       run: npm i
 
     - name: Continuous integration
-      run: npm run test
+      run: npm run debug-test

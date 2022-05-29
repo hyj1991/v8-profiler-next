@@ -93,7 +93,9 @@ function getOutput(proc) {
 
     it('worker_threads should exit succeed', function () {
       assert(!output.stderr);
-      const { code: workerExitCode } = JSON.parse(output.stdout);
+      console.log(output.stdout);
+      const stdout = output.stdout.split('\n').filter(line => line && !line.match(/\[thread \d+/)).join('');
+      const { code: workerExitCode } = JSON.parse(stdout);
       assert(workerExitCode === 0);
     });
 
