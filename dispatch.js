@@ -5,10 +5,16 @@ const inherits = require('util').inherits;
 const binding = require('./lib/binding');
 const workerThreads = require('./lib/worker_threads');
 
+function global_check() {
+  const version = process.versions.node.split('.').map(item => Number(item));
+  const greater_than_12_15_0 = version[0] > 12 || (version[0] === 12 && version[1] > 15);
+  return { greater_than_12_15_0 };
+}
+
 binding.setup({
   debug: !!process.env.V8_PROFILER_DEBUG,
-  thread_id: workerThreads.threadId,
-});
+  thread_id: workerThreads.threadId
+}, global_check);
 
 function nodes(snapshot) {
   let n = snapshot.nodesCount, i, nodes = [];
@@ -240,7 +246,7 @@ let profiler = {
     }
   },
 
-  startProfiling: function (name, recsamples) {
+  startProfiling: function (name, recsamples, mode) {
     if (activeProfiles.length === 0 && typeof process._startProfilerIdleNotifier === 'function') {
       process._startProfilerIdleNotifier();
     }
@@ -250,13 +256,17 @@ let profiler = {
       name = '';
     }
 
+    if ([0, 1].indexOf(mode) === -1) {
+      mode = 0;
+    }
+
     recsamples = recsamples === undefined ? true : Boolean(recsamples);
     name = name && '' + name || '';
 
     if (activeProfiles.indexOf(name) < 0) { activeProfiles.push(name); }
 
     startTime = Date.now();
-    binding.cpu.startProfiling(name, recsamples);
+    binding.cpu.startProfiling(name, recsamples, mode);
   },
 
   stopProfiling: function (name) {

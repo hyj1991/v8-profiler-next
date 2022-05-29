@@ -52,7 +52,7 @@ async function main() {
     });
   } else {
     v8Profiler.setProfilesCleanupLimit(1000);
-    v8Profiler.startProfiling('worker_threads', true);
+    v8Profiler.startProfiling('worker_threads', true, 1);
     v8Profiler.startSamplingHeapProfiling();
     const start = Date.now();
     const array = globalThis.worker_array = [];

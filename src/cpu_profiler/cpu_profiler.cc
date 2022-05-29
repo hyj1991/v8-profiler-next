@@ -58,10 +58,28 @@ INNER_METHOD(InnerCpuProfiler::StartProfiling) {
 
   Local<String> title = Nan::To<String>(info[0]).ToLocalChecked();
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   bool recsamples = Nan::To<bool>(info[1]).ToChecked();
   if (!cpu_profiler_) {
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+    EnvironmentData* env_data = EnvironmentData::GetCurrent(this->isolate());
+    if (env_data->greater_than_12_15_0()) {
+      int logging_mode_check = 0;
+      if (info[2]->IsNumber()) {
+        logging_mode_check = Nan::To<uint32_t>(info[2]).ToChecked();
+      }
+      v8::CpuProfilingLoggingMode logging_mode =
+          logging_mode_check == 1 ? v8::kEagerLogging : v8::kLazyLogging;
+      logger(this->isolate(), "cpuprofiler using loggingMode: %d\n",
+             logging_mode);
+      cpu_profiler_ = v8::CpuProfiler::New(v8::Isolate::GetCurrent(),
+                                           v8::kDebugNaming, logging_mode);
+    } else {
+      cpu_profiler_ = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+    }
+#else
     cpu_profiler_ = v8::CpuProfiler::New(v8::Isolate::GetCurrent());
+#endif
   }
   ++started_profiles_count_;
   ++profiles_since_last_cleanup_;
