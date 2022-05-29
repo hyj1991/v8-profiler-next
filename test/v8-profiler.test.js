@@ -45,7 +45,7 @@ describe('v8-profiler', function () {
       it('should record samples, if started with recsamples argument', function () {
         if (NODE_V_010) { return; }
 
-        profiler.startProfiling(true);
+        profiler.startProfiling(true, undefined, 'abc');
         const profile = profiler.stopProfiling();
         expect(profile.samples.length > 0).to.equal(true);
       });
@@ -66,7 +66,7 @@ describe('v8-profiler', function () {
       it('should generate new formate when setGenerateType(1)', function () {
         profiler.setGenerateType(1);
         profiler.setProfilesCleanupLimit(1000);
-        profiler.startProfiling(true);
+        profiler.startProfiling(true, undefined, 1);
         const profile = profiler.stopProfiling();
 
         expect(profile.nodes.length > 0).to.equal(true);

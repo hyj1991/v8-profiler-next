@@ -55,7 +55,7 @@ describe('binding', function () {
       it('has expected structure with generateType 1', function () {
         cpu.setGenerateType(1);
         cpu.setProfilesCleanupLimit([]);
-        cpu.startProfiling('', true);
+        cpu.startProfiling('', true, 1);
         const profile = cpu.stopProfiling();
         const properties = NODE_V_010 ?
           ['delete', 'typeId', 'uid', 'title', 'head'] :

@@ -15,7 +15,7 @@ namespace nodex {
   delete private_name;             \
   private_name = nullptr;
 
-#define GET_JS_ENVIRONMENT_DATA(variable, convert_to)                      \
+#define GET_JS_ENVIRONMENT_DATA(data, variable, convert_to)                \
   v8::Local<v8::convert_to> variable =                                     \
       Nan::To<v8::convert_to>(                                             \
           Nan::Get(data, Nan::New<v8::String>(#variable).ToLocalChecked()) \
@@ -47,6 +47,7 @@ class EnvironmentData {
   v8::Isolate* isolate() { return isolate_; };
   ThreadId& thread_id() { return thread_id_; }
   bool& debug() { return debug_; }
+  bool& greater_than_12_15_0() { return greater_than_12_15_0_; }
   InnerCpuProfiler*& cpu_profiler() { return cpu_profiler_; }
   InnerProfile*& cpu_profile() { return cpu_profile_; }
   InnerSamplingHeapProfiler*& heap_profiler() { return heap_profiler_; }
@@ -59,6 +60,7 @@ class EnvironmentData {
   v8::Isolate* isolate_ = nullptr;
   ThreadId thread_id_ = -1;
   bool debug_ = false;
+  bool greater_than_12_15_0_ = true;
 
   // Inner classes
   InnerCpuProfiler* cpu_profiler_ = nullptr;
