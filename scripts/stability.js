@@ -1,7 +1,7 @@
 'use strict';
 
 const execCmd = require('./build').execCmd;
-const versions = require('./7u');
+const { os7u: versions } = require('./versions');
 
 function runOneVersion(version) {
   execCmd(`source ~/.tnvm/tnvm.sh && tnvm use ${version} && npm run build && npm run test`);
