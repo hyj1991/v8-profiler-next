@@ -29,6 +29,7 @@ void CpuProfiler::Initialize(Local<Object> target) {
   Nan::SetMethod(cpuProfiler, "stopProfiling", CpuProfiler::StopProfiling);
   Nan::SetMethod(cpuProfiler, "setSamplingInterval",
                  CpuProfiler::SetSamplingInterval);
+  Nan::SetMethod(cpuProfiler, "collectSample", CpuProfiler::CollectSample);
   Nan::SetMethod(cpuProfiler, "setGenerateType", CpuProfiler::SetGenerateType);
   Nan::SetMethod(cpuProfiler, "setProfilesCleanupLimit",
                  CpuProfiler::SetProfilesCleanupLimit);
@@ -144,6 +145,16 @@ INNER_METHOD(InnerCpuProfiler::SetSamplingInterval) {
 #elif (NODE_MODULE_VERSION > 0x000B)
   v8::Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(
       Nan::To<uint32_t>(info[0]).ToChecked());
+#endif
+}
+
+INNER_METHOD(InnerCpuProfiler::CollectSample) {
+  HandleScope scope(this->isolate());
+
+#if (NODE_MODULE_VERSION > 0x003B)
+  v8::CpuProfiler::CollectSample(this->isolate());
+#elif (NODE_MODULE_VERSION >= 0x0030)
+  v8::Isolate::GetCurrent()->GetCpuProfiler()->CollectSample();
 #endif
 }
 }  // namespace nodex

@@ -6,7 +6,7 @@ import { Stream } from "stream";
  * @param recsamples Is true by default.
  */
 export function startProfiling(recsamples?: boolean): void;
-export function startProfiling(name?: string, recsamples?: boolean): void;
+export function startProfiling(name?: string, recsamples?: boolean, mode?: 0 | 1): void;
 
 /**
  * Stops the profiler for a specific profile.

@@ -304,6 +304,12 @@ let profiler = {
     });
   },
 
+  collectSample: function () {
+    if (process.versions.modules >= 48) {
+      binding.cpu.collectSample();
+    }
+  },
+
   /*SAMPLING HEAP PROFILER API*/
 
   startSamplingHeapProfiling: function (interval, depth) {
