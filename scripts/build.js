@@ -15,13 +15,15 @@ function debug(message) {
 //   console.log(`\n\x1b[31m${message}\x1b[0m\n`);
 // }
 
+const bashNotExists = !fs.existsSync('/bin/bash');
+
 function execCmd(cmd) {
   debug(cmd);
   cp.execSync(cmd, {
     env: process.env,
     cwd: path.join(__dirname, '../'),
     stdio: 'inherit',
-    shell: isWindows ? undefined : '/bin/bash',
+    shell: isWindows || bashNotExists ? undefined : '/bin/bash',
   });
 }
 
