@@ -31,6 +31,9 @@ describe('binding', function () {
 
       it('has expected structure', function () {
         const properties = ['startProfiling', 'stopProfiling', 'profiles'];
+        if (process.versions.modules >= 48) {
+          properties.push('collectSample');
+        }
 
         properties.forEach(function (prop) {
           expect(cpu).to.have.property(prop);

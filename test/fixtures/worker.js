@@ -40,6 +40,7 @@ async function main() {
     await createSnapshot('main.heapsnapshot');
 
     v8Profiler.startProfiling('main', true);
+    v8Profiler.collectSample();
     v8Profiler.startSamplingHeapProfiling();
     w.once('exit', code => {
       // create cpu profile in main thread
@@ -58,6 +59,7 @@ async function main() {
     const array = globalThis.worker_array = [];
     while (Date.now() - start < 2000) {
       array.push(new Array(5e5).fill('*').join(''));
+      v8Profiler.collectSample();
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 

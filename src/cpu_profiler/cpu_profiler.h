@@ -12,6 +12,7 @@ namespace nodex {
   V(StartProfiling);            \
   V(StopProfiling);             \
   V(SetSamplingInterval);       \
+  V(CollectSample);             \
   V(SetGenerateType);           \
   V(SetProfilesCleanupLimit);
 

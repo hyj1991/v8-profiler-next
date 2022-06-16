@@ -6,7 +6,7 @@ import { Stream } from "stream";
  * @param recsamples Is true by default.
  */
 export function startProfiling(recsamples?: boolean): void;
-export function startProfiling(name?: string, recsamples?: boolean): void;
+export function startProfiling(name?: string, recsamples?: boolean, mode?: 0 | 1): void;
 
 /**
  * Stops the profiler for a specific profile.
@@ -29,6 +29,7 @@ export function startTrackingHeapObjects(): void;
 export function stopTrackingHeapObjects(): void;
 export function getHeapObjectId(value: Object): number;
 export function setSamplingInterval(num: number): void;
+export function collectSample(): void;
 export function takeSnapshot(control?: Function): Snapshot;
 export function takeSnapshot(name?: string, control?: Function): Snapshot;
 export function getHeapStats(
