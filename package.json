@@ -55,7 +55,7 @@
   ],
   "dependencies": {
     "@xprofiler/node-pre-gyp": "^1.0.9",
-    "nan": "^2.16.0"
+    "nan": "^2.17.0"
   },
   "devDependencies": {
     "chai": "^4.3.6",
