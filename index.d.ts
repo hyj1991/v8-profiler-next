@@ -1,41 +1,103 @@
 import { Stream } from "stream";
 
 /**
+ * 
+ * @param type 0 for "flat" profile, 1 for "tree" profile
+ */
+export function setGenerateType(type: 0 | 1): void;
+
+/**
+ * 
+ * @param limit Maximum number of profiles to keep in memory
+ */
+export function setProfilesCleanupLimit(limit: number): void;
+
+/**
+ * 
+ * @param num Sampling interval in bytes. Default is 512 * 1024.
+ */
+export function setSamplingInterval(num: number): void;
+
+/**
+ * Collects a sample.
+ */
+export function collectSample(): void;
+
+/**
  * Starts the profiler with a new profile.
  * @param name Name for the profile. "undefined" if not defined.
  * @param recsamples Is true by default.
  */
 export function startProfiling(recsamples?: boolean): void;
 export function startProfiling(name?: string, recsamples?: boolean, mode?: 0 | 1): void;
-export function setGenerateType(type: 0 | 1): void;
-export function setProfilesCleanupLimit(limit: number): void;
+
 /**
  * Stops the profiler for a specific profile.
  * @param name Name of the profile. "undefined" if not defined.
  */
 export function stopProfiling(name?: string): CpuProfile;
+
+/**
+ * Deletes all profiles.
+ */
 export function deleteAllProfiles(): void;
-export function getObjectByHeapObjectId(id: number): Object;
+
+/**
+ * Deletes all snapshots.
+ */
 export function deleteAllSnapshots(): void;
+
+/**
+ * Starts the sampling profiler with a new profile.
+ */
 export function startSamplingHeapProfiling(): void;
 export function startSamplingHeapProfiling(
   interval: number,
   depth: number
 ): void;
+
+/**
+ * Stops the sampling profiler for a specific profile.
+ */
 export function stopSamplingHeapProfiling(): SamplingHeapProfile;
-export let profiles: Profile[];
-export function startTrackingHeapObjects(): void;
-export function stopTrackingHeapObjects(): void;
-export function getHeapObjectId(value: Object): number;
-export function setSamplingInterval(num: number): void;
-export function collectSample(): void;
-export function takeSnapshot(control?: Function): Snapshot;
-export function takeSnapshot(name?: string, control?: Function): Snapshot;
+
 export function getHeapStats(
   iterator: Function | undefined,
   callback: Function | undefined
 ): number;
+
+/**
+ * 
+ * @param id Heap object id
+ */
+export function getObjectByHeapObjectId(id: number): Object;
+
+/**
+ * Starts tracking heap objects.
+ */
+export function startTrackingHeapObjects(): void;
+
+/**
+ * Stops tracking heap objects.
+ */
+export function stopTrackingHeapObjects(): void;
+
+/**
+ * 
+ * @param value Object to get the heap object id from
+ */
+export function getHeapObjectId(value: Object): number;
+
+/**
+ * Takes a snapshot.
+ * @param name Name of the snapshot
+ * @param control Function to execute
+ */
+export function takeSnapshot(control?: Function): Snapshot;
+export function takeSnapshot(name?: string, control?: Function): Snapshot;
+
 export let snapshots: { [key: string]: Snapshot };
+export let profiles: Profile[];
 
 export class Profile {
   /**
