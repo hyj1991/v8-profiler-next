@@ -7,13 +7,12 @@ import { Stream } from "stream";
  */
 export function startProfiling(recsamples?: boolean): void;
 export function startProfiling(name?: string, recsamples?: boolean, mode?: 0 | 1): void;
-
+export function setGenerateType(type: 0 | 1): void;
+export function setProfilesCleanupLimit(limit: number): void;
 /**
  * Stops the profiler for a specific profile.
  * @param name Name of the profile. "undefined" if not defined.
  */
-export function setGenerateType(type: 0 | 1): void;
-export function setProfilesCleanupLimit(limit: number): void;
 export function stopProfiling(name?: string): CpuProfile;
 export function deleteAllProfiles(): void;
 export function getObjectByHeapObjectId(id: number): Object;
