@@ -231,7 +231,7 @@ let profiler = {
 
   setGenerateType: function (type) {
     const types = [0, 1];
-    if (types.indexOf(type) > 0) {
+    if (types.indexOf(type) > -1) {
       binding.cpu.setGenerateType(type);
     } else {
       console.error(`type should in [${types.join(', ')}], got ${type}.`);

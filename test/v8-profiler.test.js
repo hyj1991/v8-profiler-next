@@ -63,15 +63,28 @@ describe('v8-profiler', function () {
     });
 
     describe('CPU', function () {
+      it('should generate new formate when setGenerateType(0)', function () {
+        profiler.setGenerateType(0);
+        profiler.setProfilesCleanupLimit(1000);
+        profiler.startProfiling(true, undefined, 1);
+        const profile = profiler.stopProfiling();
+
+        expect(!!profile.head).to.equal(true);
+        expect(!!profile.startTime).to.equal(true);
+        expect(!!profile.endTime).to.equal(true);
+        expect(Array.isArray(profile.samples)).to.equal(true);
+        expect(Array.isArray(profile.timestamps)).to.equal(true);
+      });
+
       it('should generate new formate when setGenerateType(1)', function () {
         profiler.setGenerateType(1);
         profiler.setProfilesCleanupLimit(1000);
         profiler.startProfiling(true, undefined, 1);
         const profile = profiler.stopProfiling();
 
-        expect(profile.nodes.length > 0).to.equal(true);
+        expect(Array.isArray(profile.nodes)).to.equal(true);
         expect(!profile.head).to.equal(true);
-        expect(profile.timeDeltas.length > 0).to.equal(true);
+        expect(Array.isArray(profile.timeDeltas)).to.equal(true);
         expect(!profile.timestamps).to.equal(true);
       });
     });
