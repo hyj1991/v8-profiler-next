@@ -1,6 +1,6 @@
 {
   "name": "v8-profiler-next",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "node bindings for the v8 profiler",
   "main": "dispatch.js",
   "binary": {
@@ -55,7 +55,7 @@
   ],
   "dependencies": {
     "@xprofiler/node-pre-gyp": "^1.0.9",
-    "nan": "^2.17.0"
+    "nan": "^2.18.0"
   },
   "devDependencies": {
     "chai": "^4.3.6",
