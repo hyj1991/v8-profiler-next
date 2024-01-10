@@ -9,7 +9,7 @@
 
 ## Description
 
-v8-profiler-next provides [node](http://github.com/nodejs/node) bindings for the v8 profiler.
+v8-profiler-next provides [node](https://github.com/nodejs/node) bindings for the v8 profiler.
 
 ## I. Quick Start
 
@@ -204,4 +204,4 @@ if (workerThreads.isMainThread) {
 
 [MIT License](LICENSE)
 
-Copyright (c) 2018 team of [v8-profiler](github.com/node-inspector/v8-profiler), hyj1991
+Copyright (c) 2018 team of [v8-profiler](https://github.com/node-inspector/v8-profiler), hyj1991
